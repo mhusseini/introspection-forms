@@ -6947,13 +6947,10 @@ __metadata:
     dryvue: ^2.0.0
     graphql: ^16.0.0
     vue: ^3.4.0
-    yaml: ^2.0.0
   peerDependenciesMeta:
     dryvjs:
       optional: true
     dryvue:
-      optional: true
-    yaml:
       optional: true
   languageName: unknown
   linkType: soft
