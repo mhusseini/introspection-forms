@@ -1,22 +1,20 @@
 <template>
-  <div class="form-field form-field--textarea" :class="{ 'has-error': errorText }">
+  <div class="form-field form-field--textarea" :class="{ 'has-error': validatable?.text }">
     <label v-if="label" :for="id">{{ label }}</label>
     <textarea
+      v-if="validatable"
       :id="id"
-      :value="currentValue"
+      v-model="validatable.value"
       :placeholder="placeholder"
       :disabled="disabled"
       :rows="rows ?? 4"
-      @input="onInput"
     />
-    <p v-if="errorText" class="error">{{ errorText }}</p>
+    <p v-if="validatable?.text" class="error">{{ validatable.text }}</p>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-
-const props = defineProps<{
+defineProps<{
   id?: string
   name?: string
   label?: string
@@ -25,17 +23,4 @@ const props = defineProps<{
   rows?: number
   validatable?: { value: unknown; text: string | null }
 }>()
-
-const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
-
-const currentValue = computed(() => (props.validatable?.value as string) ?? '')
-const errorText = computed(() => props.validatable?.text ?? null)
-
-function onInput(e: Event) {
-  const val = (e.target as HTMLTextAreaElement).value
-  if (props.validatable) {
-    props.validatable.value = val
-  }
-  emit('update:modelValue', val)
-}
 </script>

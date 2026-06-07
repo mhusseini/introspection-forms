@@ -1,19 +1,18 @@
 <template>
-  <div class="form-field form-field--radio" :class="{ 'has-error': errorText }">
-    <fieldset :disabled="disabled">
+  <div class="form-field form-field--radio" :class="{ 'has-error': validatable?.text }">
+    <fieldset v-if="validatable" :disabled="disabled">
       <legend v-if="label">{{ label }} <span v-if="required" class="required">*</span></legend>
       <label v-for="opt in resolvedOptions" :key="String(opt.value)" class="radio-option">
         <input
           type="radio"
           :name="name || id"
           :value="opt.value"
-          :checked="currentValue === opt.value"
-          @change="onSelect(opt.value)"
+          v-model="validatable.value"
         />
         <span>{{ opt.label }}</span>
       </label>
     </fieldset>
-    <p v-if="errorText" class="error">{{ errorText }}</p>
+    <p v-if="validatable?.text" class="error">{{ validatable.text }}</p>
   </div>
 </template>
 
@@ -35,21 +34,9 @@ const props = defineProps<{
   validatable?: { value: unknown; text: string | null }
 }>()
 
-const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
-
-const currentValue = computed(() => props.validatable?.value)
-const errorText = computed(() => props.validatable?.text ?? null)
-
 const resolvedOptions = computed(() => {
   if (!props.options) return []
   if (typeof props.options === 'function') return props.options(null, (k: string) => k)
   return props.options
 })
-
-function onSelect(value: unknown) {
-  if (props.validatable) {
-    props.validatable.value = value
-  }
-  emit('update:modelValue', value)
-}
 </script>

@@ -23,10 +23,9 @@
 </template>
 
 <script setup lang="ts" generic="TModel extends Record<string, unknown>">
-import { ref, computed, onMounted, watch, unref } from 'vue'
-import type { FormRuntime, FieldRuntime, IntrospectionField, Translate } from '../types'
+import { ref, computed, onMounted, watch, unref, inject } from 'vue'
+import type { FormRuntime, FieldRuntime, IntrospectionField as IntrospectionFieldType, Translate } from '../types'
 import { readStorage, writeStorage } from '../utils/storage'
-import { inject } from 'vue'
 import IntrospectionField from './IntrospectionField.vue'
 
 const props = withDefaults(

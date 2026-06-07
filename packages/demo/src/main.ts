@@ -1,6 +1,6 @@
 import { createApp } from 'vue'
 import { Dryv, type DryvOptions } from 'dryvue'
-import { IntrospectionFormsPlugin } from 'introspection-forms/plugin'
+import { IntrospectionFormsPlugin, provideTranslate } from 'introspection-forms/plugin'
 import App from './App.vue'
 import FormInput from './components/FormInput.vue'
 import FormCheckbox from './components/FormCheckbox.vue'
@@ -10,6 +10,15 @@ import FormTextarea from './components/FormTextarea.vue'
 import FormDateInput from './components/FormDateInput.vue'
 
 const app = createApp(App)
+
+// Simple translation: convert camelCase field names to Title Case labels
+provideTranslate(app, (key: string) => {
+  const fieldName = key.split('.').pop() ?? key
+  return fieldName
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/^./, (s) => s.toUpperCase())
+    .trim()
+})
 
 // Install Dryv (no server — all rules are local)
 app.use<DryvOptions>(Dryv, {

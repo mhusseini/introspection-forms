@@ -45,23 +45,23 @@ Peer dependencies: `vue >= 3.4`, `graphql >= 16`.
 ## How It Works
 
 ```
-┌──────────────────┐       codegen        ┌─────────────────────────┐
-│  GraphQL Schema  │ ──────────────────▶  │  TypeOfXxxInput.ts      │
-│  (input types)   │                       │  (IntrospectionType<T>) │
-└──────────────────┘                       └────────────┬────────────┘
-                                                        │
-                                                        ▼
-                                           ┌─────────────────────────┐
-                                           │  useIntrospectionForm() │
-                                           │  + component mapping    │
-                                           │  + validation rules     │
-                                           └────────────┬────────────┘
-                                                        │
-                                                        ▼
-                                           ┌─────────────────────────┐
-                                           │  <IntrospectionForm>    │
-                                           │  <IntrospectionField>   │
-                                           └─────────────────────────┘
+┌──────────────────┐       codegen       ┌─────────────────────────┐
+│  GraphQL Schema  │ ──────────────────▶ │  TypeOfXxxInput.ts      │
+│  (input types)   │                     │  (IntrospectionType<T>) │
+└──────────────────┘                     └────────────┬────────────┘
+                                                      │
+                                                      ▼
+                                         ┌─────────────────────────┐
+                                         │  useIntrospectionForm() │
+                                         │  + component mapping    │
+                                         │  + validation rules     │
+                                         └────────────┬────────────┘
+                                                      │
+                                                      ▼
+                                         ┌─────────────────────────┐
+                                         │  <IntrospectionForm>    │
+                                         │  <IntrospectionField>   │
+                                         └─────────────────────────┘
 ```
 
 1. Define your data model as a GraphQL `input` type.
@@ -232,7 +232,7 @@ const form = useIntrospectionForm(TypeOfContactFormInput, {
 
 ### With Validation
 
-Pass a validation rule set (e.g. from [Dryv](https://github.com/mhusseini/dryvjs)) as the second argument:
+Pass a [Dryv](https://github.com/mhusseini/dryvjs) validation rule set as the second argument:
 
 ```ts
 import { useDryv } from 'dryvue'
@@ -353,7 +353,7 @@ enumFilters: {
 }
 ```
 
-Access the filter in composables:
+When building custom field components, use `useIntrospectionFormsEnumFilter` to retrieve the filtered values for a given field. This ensures your select/dropdown options respect the global filter configuration:
 
 ```ts
 const { filterEnumValues } = useIntrospectionFormsEnumFilter()

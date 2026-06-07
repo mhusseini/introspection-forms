@@ -6,180 +6,22 @@
     </header>
 
     <main>
-      <form @submit.prevent="handleSubmit" class="registration-form">
-        <!-- Personal Information Section -->
-        <section class="form-section">
-          <h2>Personal Information</h2>
-          <div class="form-grid">
-            <FormRadio
-              label="Salutation"
-              :validatable="validatable.salutation"
-              :required="true"
-              :options="salutationOptions"
-            />
-            <FormInput
-              label="First Name"
-              :validatable="validatable.firstName"
-              :required="true"
-              placeholder="Enter your first name"
-            />
-            <FormInput
-              label="Last Name"
-              :validatable="validatable.lastName"
-              :required="true"
-              placeholder="Enter your last name"
-            />
-            <FormDateInput
-              label="Date of Birth"
-              :validatable="validatable.dateOfBirth"
-            />
+      <div class="registration-form">
+        <IntrospectionForm
+          :form="form"
+          :model="model"
+          :validatable="validatable"
+          :storage="false"
+          @submit.prevent="handleSubmit"
+        >
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
+              {{ isSubmitting ? 'Submitting...' : 'Register' }}
+            </button>
+            <button type="button" class="btn btn-secondary" @click="resetForm">Reset</button>
           </div>
-        </section>
-
-        <!-- Contact Section -->
-        <section class="form-section">
-          <h2>Contact Details</h2>
-          <div class="form-grid">
-            <FormInput
-              label="Email"
-              type="email"
-              :validatable="validatable.email"
-              :required="true"
-              placeholder="you@example.com"
-            />
-            <FormInput
-              label="Phone"
-              type="tel"
-              :validatable="validatable.phone"
-              :required="model.preferredContact === 'Phone'"
-              placeholder="+49 123 456789"
-            />
-            <FormRadio
-              label="Preferred Contact Method"
-              :validatable="validatable.preferredContact"
-              :required="true"
-              :options="contactMethodOptions"
-            />
-          </div>
-        </section>
-
-        <!-- Address Section -->
-        <section class="form-section">
-          <h2>Address</h2>
-          <div class="form-grid">
-            <FormInput
-              label="Street"
-              :validatable="addressValidatable.street"
-              :required="true"
-              placeholder="Main Street"
-            />
-            <FormInput
-              label="House Number"
-              :validatable="addressValidatable.houseNumber"
-              :required="true"
-              placeholder="42a"
-            />
-            <FormInput
-              label="ZIP Code"
-              :validatable="addressValidatable.zipCode"
-              :required="true"
-              placeholder="12345"
-            />
-            <FormInput
-              label="City"
-              :validatable="addressValidatable.city"
-              :required="true"
-              placeholder="Berlin"
-            />
-            <FormInput
-              label="Country"
-              :validatable="addressValidatable.country"
-              placeholder="Germany"
-            />
-          </div>
-        </section>
-
-        <!-- Billing Address Section (conditional) -->
-        <section class="form-section">
-          <h2>Billing Address</h2>
-          <FormCheckbox
-            label="Use same address for billing"
-            :validatable="validatable.useSameAddress"
-          />
-          <div v-if="!model.useSameAddress" class="form-grid billing-address">
-            <FormInput label="Street" placeholder="Billing Street" />
-            <FormInput label="House Number" placeholder="1" />
-            <FormInput label="ZIP Code" placeholder="10115" />
-            <FormInput label="City" placeholder="Munich" />
-          </div>
-        </section>
-
-        <!-- Employment Section -->
-        <section class="form-section">
-          <h2>Employment</h2>
-          <div class="form-grid">
-            <FormSelect
-              label="Employment Status"
-              :validatable="validatable.employmentStatus"
-              :required="true"
-              :options="employmentOptions"
-            />
-            <FormInput
-              v-if="showCompanyField"
-              label="Company Name"
-              :validatable="validatable.companyName"
-              :required="showCompanyField"
-              placeholder="Acme Corp."
-            />
-            <FormInput
-              v-if="showIncomeField"
-              label="Annual Income (€)"
-              type="number"
-              :validatable="validatable.annualIncome"
-              placeholder="45000"
-            />
-          </div>
-        </section>
-
-        <!-- Additional Section -->
-        <section class="form-section">
-          <h2>Additional Information</h2>
-          <div class="form-grid">
-            <FormInput
-              label="Referral Code"
-              :validatable="validatable.referralCode"
-              placeholder="ABC123"
-            />
-            <FormTextarea
-              label="Notes"
-              :validatable="validatable.notes"
-              placeholder="Any additional comments..."
-            />
-          </div>
-        </section>
-
-        <!-- Terms & Consent -->
-        <section class="form-section">
-          <h2>Consent</h2>
-          <FormCheckbox
-            label="I accept the terms and conditions"
-            :validatable="validatable.acceptTerms"
-            :required="true"
-          />
-          <FormCheckbox
-            label="Subscribe to newsletter"
-            :validatable="validatable.acceptNewsletter"
-          />
-        </section>
-
-        <!-- Actions -->
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
-            {{ isSubmitting ? 'Submitting...' : 'Register' }}
-          </button>
-          <button type="button" class="btn btn-secondary" @click="resetForm">Reset</button>
-        </div>
-      </form>
+        </IntrospectionForm>
+      </div>
 
       <!-- Debug Panel -->
       <aside class="debug-panel">
@@ -203,60 +45,91 @@
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
 import { useDryv } from 'dryvue'
-import { TypeOfRegistrationFormInput } from './generated/introspection'
+import { useIntrospectionForm } from 'introspection-forms'
+import IntrospectionForm from 'introspection-forms/components/IntrospectionForm.vue'
+import { TypeOfRegistrationFormInput, TypeOfAddressInput } from './generated/introspection'
 import { RegistrationFormValidationSet } from './validation/RegistrationFormRules'
-import { AddressValidationSet } from './validation/AddressRules'
 import { Salutation, ContactMethod, EmploymentStatus } from './generated/graphql-types'
-import FormInput from './components/FormInput.vue'
-import FormCheckbox from './components/FormCheckbox.vue'
-import FormRadio from './components/FormRadio.vue'
 import FormSelect from './components/FormSelect.vue'
-import FormTextarea from './components/FormTextarea.vue'
-import FormDateInput from './components/FormDateInput.vue'
+import FormRadio from './components/FormRadio.vue'
 
-// Create model from introspection metadata
-const formData = TypeOfRegistrationFormInput.create({
+// Create model from introspection metadata, wrapped in reactive for Vue tracking
+const formData = reactive(TypeOfRegistrationFormInput.create({
   useSameAddress: true,
   acceptNewsletter: false,
-})
+}))
 
 // Set up Dryv validation for the main form
 const { validatable, model, validate } = useDryv(formData, RegistrationFormValidationSet)
 
-// Set up Dryv validation for the nested address
-const { validatable: addressValidatable } = useDryv(model.address, AddressValidationSet)
-
 const isSubmitting = ref(false)
 const submitted = ref(false)
 
-// Computed conditions for dynamic fields
-const showCompanyField = computed(
-  () => model.employmentStatus === EmploymentStatus.Employed || model.employmentStatus === EmploymentStatus.SelfEmployed,
-)
-const showIncomeField = computed(
-  () => model.employmentStatus !== EmploymentStatus.Unemployed && model.employmentStatus !== EmploymentStatus.Student,
-)
+// Nested address form
+const addressForm = useIntrospectionForm(TypeOfAddressInput, {
+  street: { props: { placeholder: 'Main Street' } },
+  houseNumber: { props: { placeholder: '42a' } },
+  zipCode: { props: { placeholder: '12345' } },
+  city: { props: { placeholder: 'Berlin' } },
+  country: { props: { placeholder: 'Germany' } },
+})
 
-// Options
-const salutationOptions = [
-  { value: Salutation.Mr, label: 'Mr' },
-  { value: Salutation.Mrs, label: 'Mrs' },
-  { value: Salutation.Other, label: 'Other' },
-]
-
-const contactMethodOptions = [
-  { value: ContactMethod.Email, label: 'Email' },
-  { value: ContactMethod.Phone, label: 'Phone' },
-  { value: ContactMethod.Mail, label: 'Mail' },
-]
-
-const employmentOptions = [
-  { value: EmploymentStatus.Employed, label: 'Employed' },
-  { value: EmploymentStatus.SelfEmployed, label: 'Self-Employed' },
-  { value: EmploymentStatus.Student, label: 'Student' },
-  { value: EmploymentStatus.Retired, label: 'Retired' },
-  { value: EmploymentStatus.Unemployed, label: 'Unemployed' },
-]
+// Main registration form
+const form = useIntrospectionForm(TypeOfRegistrationFormInput, RegistrationFormValidationSet, {
+  salutation: {
+    component: FormRadio,
+    props: {
+      options: () => [
+        { value: Salutation.Mr, label: 'Mr' },
+        { value: Salutation.Mrs, label: 'Mrs' },
+        { value: Salutation.Other, label: 'Other' },
+      ],
+    },
+  },
+  firstName: { props: { placeholder: 'Enter your first name' } },
+  lastName: { props: { placeholder: 'Enter your last name' } },
+  dateOfBirth: true,
+  email: { props: { placeholder: 'you@example.com' } },
+  phone: { props: { placeholder: '+49 123 456789' } },
+  preferredContact: {
+    component: FormRadio,
+    props: {
+      options: () => [
+        { value: ContactMethod.Email, label: 'Email' },
+        { value: ContactMethod.Phone, label: 'Phone' },
+        { value: ContactMethod.Mail, label: 'Mail' },
+      ],
+    },
+  },
+  address: { form: addressForm },
+  useSameAddress: true,
+  employmentStatus: {
+    component: FormSelect,
+    props: {
+      options: () => [
+        { value: EmploymentStatus.Employed, label: 'Employed' },
+        { value: EmploymentStatus.SelfEmployed, label: 'Self-Employed' },
+        { value: EmploymentStatus.Student, label: 'Student' },
+        { value: EmploymentStatus.Retired, label: 'Retired' },
+        { value: EmploymentStatus.Unemployed, label: 'Unemployed' },
+      ],
+    },
+  },
+  companyName: {
+    visible: (m) =>
+      m.employmentStatus === EmploymentStatus.Employed || m.employmentStatus === EmploymentStatus.SelfEmployed,
+    props: { placeholder: 'Acme Corp.' },
+  },
+  annualIncome: {
+    visible: (m) =>
+      m.employmentStatus !== EmploymentStatus.Unemployed && m.employmentStatus !== EmploymentStatus.Student,
+    props: { placeholder: '45000' },
+  },
+  referralCode: { props: { placeholder: 'ABC123' } },
+  notes: { props: { placeholder: 'Any additional comments...' } },
+  acceptTerms: true,
+  acceptNewsletter: true,
+})
 
 // Validation state for debug
 const validationState = computed(() => {
@@ -264,10 +137,6 @@ const validationState = computed(() => {
   for (const key of Object.keys(validatable)) {
     const v = (validatable as Record<string, { text: string | null }>)[key]
     if (v?.text) fields[key] = v.text
-  }
-  for (const key of Object.keys(addressValidatable)) {
-    const v = (addressValidatable as Record<string, { text: string | null }>)[key]
-    if (v?.text) fields[`address.${key}`] = v.text
   }
   return fields
 })

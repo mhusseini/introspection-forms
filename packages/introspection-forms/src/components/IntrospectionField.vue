@@ -7,6 +7,7 @@
       :form="fieldForm"
       :columns="columns"
       :model="(validatable as Record<string, unknown>)"
+      :validatable="(validatable as Record<string, unknown>)"
       :storage="'none'"
     />
 
@@ -82,14 +83,14 @@ function createTypingProxy(
   onValueChange?: (newValue: unknown) => void,
 ) {
   return new Proxy(validatable, {
-    get(target: ValidatableField, prop: string | symbol, receiver: object) {
-      return Reflect.get(target, prop, receiver)
+    get(target: ValidatableField, prop: string | symbol) {
+      return (target as Record<string | symbol, unknown>)[prop]
     },
-    set(target: ValidatableField, prop: string | symbol, newValue: unknown, receiver: object) {
-      const value = prop === 'value' ? convert(newValue, introspection.type) : newValue
-      const result = Reflect.set(target, prop, value, receiver)
+    set(target: ValidatableField, prop: string | symbol, newValue: unknown) {
+      const value = prop === 'value' ? convert(newValue, introspection.type) : newValue;
+      (target as Record<string | symbol, unknown>)[prop] = value
       if (prop === 'value' && onValueChange) onValueChange(value)
-      return result
+      return true
     },
   })
 }
