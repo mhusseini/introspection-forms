@@ -14,7 +14,6 @@ Nuxt module that wraps [introspection-forms](../introspection-forms) for seamles
 - [Auto-Imports](#auto-imports)
 - [Validation with Dryv](#validation-with-dryv)
 - [Advanced Configuration](#advanced-configuration)
-- [Architecture](#architecture)
 - [License](#license)
 
 ## Installation

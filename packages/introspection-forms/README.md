@@ -32,7 +32,6 @@ Schema-driven form generation for Vue 3 from GraphQL or OpenAPI introspection me
 - [Codegen Plugin Configuration](#codegen-plugin-configuration)
 - [OpenAPI Codegen Configuration](#openapi-codegen-configuration)
 - [API Reference](#api-reference)
-- [Architecture](#architecture)
 - [License](#license)
 
 ## Installation
