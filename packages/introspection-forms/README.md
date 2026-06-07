@@ -396,7 +396,7 @@ This gives you full control over the Dryv session — you can call `validate()`,
 
 ### Built-in Dryv Integration
 
-When `form.rules` is set and no external `validatable` is passed, the component creates a Dryv session internally. This is the simplest setup — validation is fully managed by the component:
+When `form.rules` is set and no external `validatable` is passed, the component creates a [Dryv](https://github.com/mhusseini/dryvjs) session internally. This is the simplest setup — validation is fully managed by the component:
 
 ```ts
 const model = reactive(TypeOfContactFormInput.create())
@@ -425,7 +425,7 @@ const validate = ref<(checkOnly?: boolean) => Promise<boolean>>()
 </template>
 ```
 
-The component dynamically imports `dryvue` at mount time. If `dryvue` is not installed, the component falls back to a no-validation proxy — all fields remain editable and `validate()` always returns `true`.
+The component dynamically imports [`dryvue`](https://github.com/mhusseini/dryvue) at mount time. If `dryvue` is not installed, the component falls back to a no-validation proxy — all fields remain editable and `validate()` always returns `true`.
 
 > **Note:** Because the component uses a top-level `await` for the dynamic import, it must be wrapped in `<Suspense>`. In Nuxt, all components are wrapped in Suspense automatically.
 
