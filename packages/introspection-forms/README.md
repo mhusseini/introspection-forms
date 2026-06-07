@@ -14,12 +14,13 @@ Schema-driven form generation for Vue 3 from GraphQL or OpenAPI introspection me
 - [Usage](#usage)
   - [Basic Form](#basic-form)
   - [With Validation](#with-validation)
-  - [Validation and Reset via v-model](#validation-and-reset-via-v-model)
   - [Built-in Dryv Integration](#built-in-dryv-integration)
+    - [Validation and Reset via v-model](#validation-and-reset-via-v-model)
   - [Dependent Forms](#dependent-forms)
   - [Dirty Tracking and Loaded State](#dirty-tracking-and-loaded-state)
   - [Dynamic / Conditional Fields](#dynamic--conditional-fields)
   - [Nested Forms](#nested-forms)
+  - [Custom Controls](#custom-controls)
   - [Type-Safe Props](#type-safe-props-with-withprops)
   - [Emits (Event Handlers)](#emits-event-handlers)
   - [Enum Filtering](#enum-filtering)
@@ -27,6 +28,7 @@ Schema-driven form generation for Vue 3 from GraphQL or OpenAPI introspection me
 - [Component Mapping](#component-mapping)
   - [Resolution Order](#resolution-order)
   - [Static vs. Dynamic Defaults](#static-vs-dynamic-defaults)
+  - [Field Component Contract](#field-component-contract)
 - [Codegen Plugin Configuration](#codegen-plugin-configuration)
 - [OpenAPI Codegen Configuration](#openapi-codegen-configuration)
 - [API Reference](#api-reference)
@@ -393,33 +395,6 @@ const form = useIntrospectionForm(TypeOfContactFormInput, ContactFormValidationS
 
 This gives you full control over the Dryv session — you can call `validate()`, `reset()`, `revert()`, and access `dirty`, `valid`, etc. directly.
 
-### Validation and Reset via v-model
-
-`<IntrospectionForm>` exposes `validate` and `reset` functions via `v-model`, allowing the parent to trigger validation and reset without managing the Dryv session directly:
-
-```ts
-const validate = ref<(checkOnly?: boolean) => Promise<boolean>>()
-const reset = ref<() => void>()
-```
-
-```vue
-<template>
-  <IntrospectionForm
-    :form="form"
-    :model="model"
-    v-model:validate="validate"
-    v-model:reset="reset"
-  >
-    <button @click="validate?.()">Submit</button>
-    <button @click="reset?.()">Reset</button>
-  </IntrospectionForm>
-</template>
-```
-
-The `validate` function returns a `Promise<boolean>` — `true` if validation passed, `false` otherwise. It also accepts an optional `checkOnly` parameter: when `true`, the validation result is returned but the form state is immediately reset (useful for pre-flight checks). On successful validation, the component syncs the inner model back to `props.model` and persists to storage (if configured).
-
-The `reset` function calls Dryv's `revert()` (undo field changes) and `reset()` (clear validation state).
-
 ### Built-in Dryv Integration
 
 When `form.rules` is set and no external `validatable` is passed, the component creates a Dryv session internally. This is the simplest setup — validation is fully managed by the component:
@@ -454,6 +429,48 @@ const validate = ref<(checkOnly?: boolean) => Promise<boolean>>()
 The component dynamically imports `dryvue` at mount time. If `dryvue` is not installed, the component falls back to a no-validation proxy — all fields remain editable and `validate()` always returns `true`.
 
 > **Note:** Because the component uses a top-level `await` for the dynamic import, it must be wrapped in `<Suspense>`. In Nuxt, all components are wrapped in Suspense automatically.
+
+#### Validation and Reset via v-model
+
+`<IntrospectionForm>` exposes `validate` and `reset` functions via `v-model`, allowing the parent to trigger validation and reset without managing the Dryv session directly:
+
+```ts
+import { reactive, ref } from 'vue'
+import { useIntrospectionForm } from 'introspection-forms'
+import { TypeOfContactFormInput } from './generated/introspection'
+import { ContactFormValidationSet } from './validation/ContactFormRules'
+
+const model = reactive(TypeOfContactFormInput.create())
+
+const form = useIntrospectionForm(TypeOfContactFormInput, ContactFormValidationSet, {
+  firstName: true,
+  lastName: true,
+  email: true,
+})
+
+const validate = ref<(checkOnly?: boolean) => Promise<boolean>>()
+const reset = ref<() => void>()
+```
+
+```vue
+<template>
+  <Suspense>
+    <IntrospectionForm
+      :form="form"
+      :model="model"
+      v-model:validate="validate"
+      v-model:reset="reset"
+    >
+      <button @click="validate?.()">Submit</button>
+      <button @click="reset?.()">Reset</button>
+    </IntrospectionForm>
+  </Suspense>
+</template>
+```
+
+The `validate` function returns a `Promise<boolean>` — `true` if validation passed, `false` otherwise. It also accepts an optional `checkOnly` parameter: when `true`, the validation result is returned but the form state is immediately reset (useful for pre-flight checks). On successful validation, the component syncs the inner model back to `props.model` and persists to storage (if configured).
+
+The `reset` function calls Dryv's `revert()` (undo field changes) and `reset()` (clear validation state).
 
 ### Dependent Forms
 
@@ -543,6 +560,37 @@ const form = useIntrospectionForm(TypeOfRegistrationInput, {
 ```
 
 The `<IntrospectionField>` component detects the nested form and recursively renders it.
+
+### Custom Controls
+
+A field in the form config that does not correspond to any field in the model's introspection metadata is treated as a custom Vue component. It will be rendered at its configured position in the form layout, but without data-binding or validation:
+
+```ts
+import { useIntrospectionForm } from 'introspection-forms'
+import { TypeOfContactFormInput } from './generated/introspection'
+import FormDivider from './components/FormDivider.vue'
+import FormHint from './components/FormHint.vue'
+
+const form = useIntrospectionForm(TypeOfContactFormInput, {
+  firstName: true,
+  lastName: true,
+  // Custom control — not a model field
+  divider: { component: FormDivider, span: 2 },
+  email: true,
+  // Another custom control with dynamic content
+  hint: {
+    component: FormHint,
+    props: {
+      text: (model) => model.email ? 'We will send a confirmation to this address.' : '',
+    },
+    visible: (model) => !!model.email,
+    span: 2,
+  },
+  body: true,
+})
+```
+
+Since `divider` and `hint` are not fields defined in `TypeOfContactFormInput`, the component renders them without `:name`, `:label`, `:required`, or `:disabled` bindings and without wiring them into the validation lifecycle. They still receive the configured `props` and `emits`, and respect `visible` and `span` just like regular fields.
 
 ### Type-Safe Props with `withProps`
 
@@ -648,6 +696,61 @@ byFieldType: {
   }),
 }
 ```
+
+### Field Component Contract
+
+Every component used to render a form field receives a standard set of props from `<IntrospectionField>`. Your components must accept these props:
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `id` | `string` | Unique element ID (generated via `useId()`) |
+| `name` | `string` | Field identifier formatted as `TypeName.fieldName` |
+| `label` | `string` | Resolved label (from config, translation, or auto-generated key) |
+| `info` | `string \| undefined` | Optional help text configured for the field |
+| `disabled` | `boolean \| undefined` | Whether the field is disabled |
+| `required` | `boolean \| undefined` | Whether the field is required (from validation metadata) |
+| `validatable` | `DryvValidatableField` | Reactive object for two-way data binding and validation state |
+
+The `validatable` prop is the primary interface for both reading/writing the field value and displaying validation errors:
+
+- **`validatable.value`** — the current field value. Bind it with `v-model="validatable.value"` to enable two-way data binding.
+- **`validatable.text`** — the validation error message, or `null` when the field is valid.
+
+Additionally, any props configured via the field's `props` option or global defaults are passed through via `v-bind`.
+
+#### Minimal example
+
+```vue
+<template>
+  <div class="form-field" :class="{ 'has-error': validatable?.text }">
+    <label v-if="label" :for="id">{{ label }}</label>
+    <input
+      v-if="validatable"
+      :id="id"
+      type="text"
+      v-model="validatable.value"
+      :disabled="disabled"
+      :required="required"
+    />
+    <p v-if="validatable?.text" class="error">{{ validatable.text }}</p>
+  </div>
+</template>
+
+<script setup lang="ts">
+import type { DryvValidatableField } from 'dryvjs'
+
+defineProps<{
+  id?: string
+  name?: string
+  label?: string
+  disabled?: boolean
+  required?: boolean
+  validatable?: DryvValidatableField
+}>()
+</script>
+```
+
+Your components can declare additional props (e.g. `type`, `placeholder`, `options`) — pass them via the field's `props` configuration and they will be forwarded automatically.
 
 ## Codegen Plugin Configuration
 
