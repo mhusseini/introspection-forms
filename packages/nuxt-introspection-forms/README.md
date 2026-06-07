@@ -262,16 +262,15 @@ Components registered globally:
 
 ## Validation with Dryv
 
-The module integrates with [Dryv](https://github.com/mhusseini/dryvjs) for client-side validation. Pass a `DryvValidationRuleSet` to `useIntrospectionForm`:
+The module integrates with [Dryv](https://github.com/mhusseini/dryvjs) for client-side validation. Pass a `DryvValidationRuleSet` to `useIntrospectionForm` and use `v-model:validate` to receive the validate command from the component:
 
 ```vue
 <script setup lang="ts">
 import { TypeOfContactFormInput } from '#introspection-types'
 import { ContactFormValidationSet } from '#validation'
-import { useDryv } from 'dryvue'
 
 const data = ref(TypeOfContactFormInput.create())
-const { validatable, model, validate } = useDryv(data.value, ContactFormValidationSet)
+const validate = ref<(checkOnly?: boolean) => Promise<boolean>>()
 
 const form = useIntrospectionForm(
   TypeOfContactFormInput,
@@ -284,20 +283,20 @@ const form = useIntrospectionForm(
 )
 
 async function submit() {
-  const result = await validate()
-  if (!result?.success) return
-  await $fetch('/api/submit', { method: 'POST', body: model })
+  const success = await validate.value?.()
+  if (!success) return
+  await $fetch('/api/submit', { method: 'POST', body: data.value })
 }
 </script>
 
 <template>
-  <IntrospectionForm :form="form" :model="data" :validatable="validatable">
+  <IntrospectionForm :form="form" :model="data" v-model:validate="validate">
     <button @click.prevent="submit">Submit</button>
   </IntrospectionForm>
 </template>
 ```
 
-Validation errors appear inline beneath each field automatically.
+The component internally creates a Dryv validation session when rules are provided and exposes the `validate` function via `v-model:validate`. Validation errors appear inline beneath each field automatically.
 
 ## Advanced Configuration
 

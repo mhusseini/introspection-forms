@@ -10,7 +10,10 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "jsxImportSource": "vue",
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    "paths": {
+      "introspection-forms": ["../introspection-forms/src/index.ts"]
+    }
   },
   "include": ["src/**/*.ts", "src/**/*.vue", "codegen.config.ts", "vite.config.ts"],
   "exclude": ["node_modules", "dist"]
