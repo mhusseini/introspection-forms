@@ -1,19 +1,79 @@
 # introspection-forms
 
-Schema-driven form generation for Vue 3 from GraphQL introspection metadata. A code generator reads your GraphQL schema and produces everything a form needs to render — field metadata, type information, default values, and a factory function.
+Schema-driven form generation for Vue 3 from GraphQL introspection metadata. A code generator reads your GraphQL schema and produces TypeScript metadata for every `input` type — field types, nullability, enum values, defaults, and a factory function. At runtime, a composable turns that metadata into a fully reactive form with automatic component resolution, validation integration, and conditional logic.
+
+## Table of Contents
+
+- [Installation](#installation)
+- [How It Works](#how-it-works)
+- [Setup](#setup)
+  - [1. Code Generation](#1-code-generation)
+  - [2. Vue Plugin](#2-vue-plugin)
+  - [3. Translation (Optional)](#3-translation-optional)
+- [Usage](#usage)
+  - [Basic Form](#basic-form)
+  - [With Validation](#with-validation)
+  - [Dynamic / Conditional Fields](#dynamic--conditional-fields)
+  - [Nested Forms](#nested-forms)
+  - [Type-Safe Props](#type-safe-props-with-withprops)
+  - [Emits (Event Handlers)](#emits-event-handlers)
+  - [Enum Filtering](#enum-filtering)
+  - [Storage Persistence](#storage-persistence)
+- [Component Mapping](#component-mapping)
+  - [Resolution Order](#resolution-order)
+  - [Static vs. Dynamic Defaults](#static-vs-dynamic-defaults)
+- [Codegen Plugin Configuration](#codegen-plugin-configuration)
+- [API Reference](#api-reference)
+- [Architecture](#architecture)
+- [License](#license)
 
 ## Installation
 
 ```bash
+# Core package
 yarn add introspection-forms
+
+# Code generation (dev dependency)
 yarn add -D @graphql-codegen/cli graphql
+
+# Optional: prettier for formatted output
+yarn add -D prettier
 ```
+
+Peer dependencies: `vue >= 3.4`, `graphql >= 16`.
+
+## How It Works
+
+```
+┌──────────────────┐       codegen        ┌─────────────────────────┐
+│  GraphQL Schema  │ ──────────────────▶  │  TypeOfXxxInput.ts      │
+│  (input types)   │                       │  (IntrospectionType<T>) │
+└──────────────────┘                       └────────────┬────────────┘
+                                                        │
+                                                        ▼
+                                           ┌─────────────────────────┐
+                                           │  useIntrospectionForm() │
+                                           │  + component mapping    │
+                                           │  + validation rules     │
+                                           └────────────┬────────────┘
+                                                        │
+                                                        ▼
+                                           ┌─────────────────────────┐
+                                           │  <IntrospectionForm>    │
+                                           │  <IntrospectionField>   │
+                                           └─────────────────────────┘
+```
+
+1. Define your data model as a GraphQL `input` type.
+2. Run the codegen plugin — it produces one TypeScript file per input type, each exporting an `IntrospectionType<T>` constant.
+3. In your Vue app, call `useIntrospectionForm()` with the generated metadata, optional validation rules, and per-field config.
+4. Render with `<IntrospectionForm>` — components are resolved automatically from the global plugin configuration.
 
 ## Setup
 
-### 1. Configure GraphQL Codegen
+### 1. Code Generation
 
-Create a `codegen.config.ts` (or add to your existing config):
+Create a `codegen.config.ts`:
 
 ```ts
 import type { CodegenConfig } from '@graphql-codegen/cli'
@@ -21,26 +81,27 @@ import type { CodegenConfig } from '@graphql-codegen/cli'
 const config: CodegenConfig = {
   schema: './schema.graphql',
   generates: {
-    // The output path here is only used as a placeholder by codegen CLI.
-    // The actual output is controlled by the plugin's `output` config.
+    // The key here is a placeholder — the plugin writes to `config.output` instead.
     './src/generated/introspection/_placeholder.ts': {
       plugins: ['introspection-forms/codegen'],
       config: {
-        // Required: where to write the generated files
+        // Required: output directory for generated files
         output: './src/generated/introspection',
 
-        // Optional: import path for the IntrospectionType interface
+        // Optional: where the IntrospectionType interface is imported from
         // Default: 'introspection-forms'
         introspectionTypeImport: 'introspection-forms',
 
-        // Optional: import path for your generated GraphQL TypeScript types
+        // Optional: import path for the GraphQL TypeScript types
         // Default: '../types'
         typesImport: '../graphql-types',
 
-        // Optional: prefix for generated const names (default: 'TypeOf')
+        // Optional: prefix for the exported const names
+        // Default: 'TypeOf'
         filePrefix: 'TypeOf',
 
-        // Optional: format with prettier (default: true)
+        // Optional: format with prettier
+        // Default: true
         prettier: true,
       },
     },
@@ -50,37 +111,62 @@ const config: CodegenConfig = {
 export default config
 ```
 
-Run the generator:
+Run it:
 
 ```bash
 npx graphql-codegen
 ```
 
-This produces one file per input type:
+Output:
 
 ```
 src/generated/introspection/
 ├── TypeOfContactFormInput.ts
 ├── TypeOfAddressInput.ts
 ├── TypeOfPaymentInput.ts
-└── index.ts
+└── index.ts              ← barrel re-exporting all types
 ```
 
-### 2. Install the Vue Plugin
+Each generated file looks like:
+
+```ts
+import type { IntrospectionType } from 'introspection-forms'
+import { type ContactFormInput } from '../graphql-types'
+
+export const TypeOfContactFormInput: IntrospectionType<ContactFormInput> = {
+  name: 'ContactFormInput',
+  fields: [
+    { name: 'firstName', type: 'string', originalType: 'String', isNullable: false, isEnum: false, ... },
+    { name: 'email', type: 'string', originalType: 'String', isNullable: false, isEnum: false, ... },
+    // ...
+  ],
+  create(defaults?: Partial<ContactFormInput>): ContactFormInput {
+    return { firstName: '', email: '', ...(defaults || {}) } as ContactFormInput
+  },
+}
+```
+
+### 2. Vue Plugin
+
+Register the plugin to configure which components render which field types:
 
 ```ts
 import { createApp } from 'vue'
 import { IntrospectionFormsPlugin } from 'introspection-forms/plugin'
+import IntrospectionForm from 'introspection-forms/components/IntrospectionForm.vue'
+import IntrospectionField from 'introspection-forms/components/IntrospectionField.vue'
 import { FormInput, FormCheckbox, FormRadio, FormSelect, FormTextarea } from './my-components'
 
 const app = createApp(App)
 
 app.use(IntrospectionFormsPlugin, {
+  // Optionally register the built-in components globally
+  components: { IntrospectionForm, IntrospectionField },
+
   defaults: {
-    // Map TypeScript types to components
     byFieldType: {
       string: { component: FormInput },
-      number: { component: FormInput },
+      number: { component: FormInput, props: { type: 'number' } },
       boolean: { component: FormCheckbox },
       enum: (introspection) => ({
         component: FormRadio,
@@ -89,32 +175,33 @@ app.use(IntrospectionFormsPlugin, {
         },
       }),
     },
-
-    // Map GraphQL types to components
     byOriginalType: {
       DateTime: { component: FormInput, props: { type: 'date' } },
     },
-
-    // Match field names by regex
     byFieldName: [
       { regexp: /^email/i, config: { component: FormInput, props: { type: 'email' } } },
-      { regexp: /phone/i, config: { component: FormInput, props: { type: 'tel' } } },
-      { regexp: /^(body|message)/i, config: { component: FormTextarea } },
+      { regexp: /phone|telefon/i, config: { component: FormInput, props: { type: 'tel' } } },
+      { regexp: /^(body|message|notes)/i, config: { component: FormTextarea } },
     ],
+    enumFilters: {
+      Salutation: values => values.filter(v => v !== 'None'),
+    },
   },
 })
 ```
 
-### 3. Provide a Translation Function (Optional)
+### 3. Translation (Optional)
+
+Provide a translation function so labels and enum values can be localized:
 
 ```ts
 import { provideTranslate } from 'introspection-forms/plugin'
-import { useI18n } from 'vue-i18n'
 
-// In your app setup or plugin:
-const { t } = useI18n()
-provideTranslate(app, t)
+// In your app setup:
+provideTranslate(app, (key) => i18n.global.t(key))
 ```
+
+Labels default to `forms.<TypeName>.<fieldName>` keys. Without a translator, field names are returned as-is.
 
 ## Usage
 
@@ -130,7 +217,7 @@ const data = ref(TypeOfContactFormInput.create())
 const form = useIntrospectionForm(TypeOfContactFormInput, {
   firstName: true,
   lastName: true,
-  emailAddress: true,
+  email: true,
   body: true,
 })
 ```
@@ -145,26 +232,32 @@ const form = useIntrospectionForm(TypeOfContactFormInput, {
 
 ### With Validation
 
-Pass a validation rule set as the second argument:
+Pass a validation rule set (e.g. from [Dryv](https://github.com/mhusseini/dryvjs)) as the second argument:
 
 ```ts
+import { useDryv } from 'dryvue'
+
+const { validatable, model, validate } = useDryv(data.value, ContactFormValidationSet)
+
 const form = useIntrospectionForm(
   TypeOfContactFormInput,
-  ContactFormValidationRules,  // e.g. from Dryv or any validation library
+  ContactFormValidationSet,
   {
     firstName: true,
     lastName: true,
-    emailAddress: true,
+    email: true,
   },
 )
 ```
 
-### Dynamic Fields
+The `<IntrospectionForm>` component automatically wires the validatable proxy to each field, displaying inline error messages.
 
-Configuration properties accept functions for reactive behavior:
+### Dynamic / Conditional Fields
+
+Configuration properties accept functions that receive the current model and a translation function:
 
 ```ts
-const form = useIntrospectionForm(TypeOfContactFormInput, {
+const form = useIntrospectionForm(TypeOfRegistrationInput, {
   isCustomer: {
     component: FormRadio,
     props: {
@@ -174,28 +267,46 @@ const form = useIntrospectionForm(TypeOfContactFormInput, {
       ],
     },
   },
+  // Only visible when isCustomer is true
   contractNumber: {
     visible: model => model.isCustomer === true,
-    span: 3,
+    span: 2,
+  },
+  // Dynamic label
+  email: {
+    label: model => model.isCustomer ? 'Contract Email' : 'Email Address',
+  },
+  // Conditionally disabled
+  phone: {
+    disabled: model => model.preferredContact !== 'Phone',
   },
 })
 ```
 
 ### Nested Forms
 
+For fields that are themselves complex objects (e.g. an address within a registration form):
+
 ```ts
-const form = useIntrospectionForm(TypeOfOrderInput, {
-  shippingAddress: {
-    form: useIntrospectionForm(TypeOfAddressInput, {
-      street: true,
-      city: true,
-      zipCode: true,
-    }),
-  },
+const addressForm = useIntrospectionForm(TypeOfAddressInput, {
+  street: true,
+  houseNumber: true,
+  zipCode: true,
+  city: true,
+})
+
+const form = useIntrospectionForm(TypeOfRegistrationInput, {
+  firstName: true,
+  lastName: true,
+  address: { form: addressForm },
 })
 ```
 
+The `<IntrospectionField>` component detects the nested form and recursively renders it.
+
 ### Type-Safe Props with `withProps`
+
+Get full IDE autocompletion for the props of the component you're configuring:
 
 ```ts
 import { withProps } from 'introspection-forms'
@@ -206,50 +317,180 @@ const form = useIntrospectionForm(TypeOfContactFormInput, {
     props: withProps<typeof FormInput>(() => ({
       type: 'email',
       placeholder: 'you@example.com',
+      autocomplete: 'email',
     })),
   },
 })
 ```
 
+### Emits (Event Handlers)
+
+React to value changes from within the form configuration:
+
+```ts
+const form = useIntrospectionForm(TypeOfFormInput, {
+  acceptTerms: {
+    emits: {
+      'update:modelValue': (model, t, newValue) => {
+        if (newValue) scrollToNextSection()
+      },
+    },
+  },
+})
+```
+
+Each handler receives `(model, translateFn, ...eventArgs)`.
+
+### Enum Filtering
+
+Filter out specific enum values globally via `enumFilters`:
+
+```ts
+// In plugin config:
+enumFilters: {
+  Salutation: values => values.filter(v => v !== 'None'),
+  Country: values => values.filter(v => allowedCountries.includes(v)),
+}
+```
+
+Access the filter in composables:
+
+```ts
+const { filterEnumValues } = useIntrospectionFormsEnumFilter()
+const options = filterEnumValues(fieldIntrospection) // filtered string[]
+```
+
+### Storage Persistence
+
+The `<IntrospectionForm>` component can persist form state to `sessionStorage` or `localStorage`:
+
+```vue
+<IntrospectionForm
+  :form="form"
+  :model="data"
+  storage="session"
+  :interceptStorage="(saved) => ({ ...saved, acceptTerms: false })"
+>
+  ...
+</IntrospectionForm>
+```
+
+Options: `'session'` (default), `'local'`, `'none'`, or `boolean`.
+
+## Component Mapping
+
+The plugin's `defaults` object defines how fields are automatically mapped to Vue components.
+
+### Resolution Order
+
+When determining which component to render for a given field:
+
+1. **Field-specific config** — provided directly in `useIntrospectionForm(..., { fieldName: { component } })`
+2. **Field name patterns** — first matching `byFieldName` regex entry
+3. **Original GraphQL type** — `byOriginalType[field.originalType]`
+4. **TypeScript scalar type** — `byFieldType[field.type]`
+
+Field-specific config merges with (rather than fully replaces) the resolved defaults. This means you can override only `span` or `label` while keeping the auto-resolved component.
+
+### Static vs. Dynamic Defaults
+
+Defaults can be plain objects or functions:
+
+```ts
+byFieldType: {
+  // Static — same config for every string field
+  string: { component: FormInput },
+
+  // Dynamic — the function receives the IntrospectionField and can return different configs
+  enum: (field) => ({
+    component: field.enumValues.length > 5 ? FormSelect : FormRadio,
+    props: { options: () => field.enumValues.map(v => ({ value: v, label: v })) },
+  }),
+}
+```
+
+## Codegen Plugin Configuration
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `output` | `string` | — (required) | Directory for generated TypeScript files |
+| `introspectionTypeImport` | `string` | `'introspection-forms'` | Import path for the `IntrospectionType` interface |
+| `typesImport` | `string` | `'../types'` | Import path for the generated GraphQL types |
+| `filePrefix` | `string` | `'TypeOf'` | Prefix for generated const and file names |
+| `prettier` | `boolean` | `true` | Format output with prettier |
+
 ## API Reference
 
-### Types
+### Exports from `introspection-forms`
 
-- `IntrospectionType<TModel>` — Generated metadata for a GraphQL input type
-- `IntrospectionField` — Metadata for a single field
-- `FormConfig<TModel>` — Form configuration object
-- `FormRuntime<TModel>` — Processed runtime form configuration
-- `FieldConfiguration` — Per-field configuration
-- `IntrospectionFormsDefaults` — Global component mapping defaults
-- `ValidatableField` — Interface for validation-aware field binding
+| Export | Kind | Description |
+|--------|------|-------------|
+| `useIntrospectionForm` | composable | Creates a `FormRuntime` from introspection metadata |
+| `useIntrospectionFormsEnumFilter` | composable | Access registered enum filters |
+| `withProps` | utility | Type-safe prop helper for field configuration |
+| `convert` | utility | Value type conversion (string → number/boolean) |
+| `findFieldConfiguration` | utility | Resolve defaults for a field |
+| `readStorage` / `writeStorage` / `clearStorage` | utility | Browser storage helpers |
+| `IntrospectionFormsPlugin` | Vue plugin | Global configuration and component registration |
+| `provideTranslate` | function | Provide a custom translation function |
+| `INTROSPECTION_FORMS_KEY` | InjectionKey | For advanced provide/inject usage |
 
-### Composables
+### Exports from `introspection-forms/codegen`
 
-- `useIntrospectionForm(introspection, [rules], config)` — Create a form runtime
-- `useIntrospectionFormsEnumFilter()` — Access enum filtering
+| Export | Kind | Description |
+|--------|------|-------------|
+| `plugin` | function | The GraphQL Codegen plugin entry point |
+| `default` | CodegenPlugin | Default export for codegen CLI integration |
 
-### Components
+### Exports from `introspection-forms/components/*`
 
-- `<IntrospectionForm>` — Renders a form from a FormRuntime
-- `<IntrospectionField>` — Renders a single field (used internally)
+| Component | Description |
+|-----------|-------------|
+| `IntrospectionForm.vue` | Top-level form renderer |
+| `IntrospectionField.vue` | Individual field renderer (handles nesting, typing proxy, visibility) |
 
-### Plugin
+### Key Types
 
-- `IntrospectionFormsPlugin` — Vue plugin for global configuration
-- `provideTranslate(app, t)` — Provide a custom translation function
+| Type | Description |
+|------|-------------|
+| `IntrospectionType<T>` | Generated metadata for a GraphQL input type |
+| `IntrospectionField` | Metadata for a single field (name, type, nullability, enum values) |
+| `FormConfig<T>` | User-provided form configuration (field → boolean or FieldConfiguration) |
+| `FormRuntime<T>` | Processed runtime form configuration passed to components |
+| `FieldConfiguration` | Full per-field config (component, props, visible, disabled, span, label, info, emits, form) |
+| `FieldRuntime` | Processed field config with all values as functions |
+| `IntrospectionFormsDefaults` | Global defaults shape (byFieldType, byOriginalType, byFieldName, enumFilters) |
+| `Translate` | `(key: string, params?) => string` |
 
-### Codegen
+### `<IntrospectionForm>` Props
 
-- `introspection-forms/codegen` — GraphQL Codegen plugin
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `model` | `T` | — | The reactive form data object |
+| `form` | `FormRuntime<T>` | — | Form runtime from `useIntrospectionForm` |
+| `as` | `string` | `'form'` | HTML element or component to render as the root |
+| `columns` | `number` | `2` | Number of grid columns |
+| `storage` | `'session' \| 'local' \| 'none' \| boolean` | `'session'` | Persistence strategy |
+| `interceptStorage` | `(model: T) => T \| undefined` | — | Transform data loaded from storage |
+| `validatable` | `Record<string, unknown>` | — | Dryv validatable proxy object |
 
-## Configuration Resolution Order
+## Architecture
 
-When determining which component to use for a field:
+The package is structured into independent layers:
 
-1. **Field-specific config** — provided directly in `useIntrospectionForm`
-2. **Field name patterns** — `byFieldName` regex matches
-3. **GraphQL type** — `byOriginalType` matches
-4. **TypeScript type** — `byFieldType` matches
+```
+src/
+├── types.ts            Core type definitions
+├── codegen/            GraphQL Codegen plugin (Node.js, runs at build time)
+├── composables/        Vue composables (useIntrospectionForm, useEnumFilter)
+├── components/         Vue SFCs (IntrospectionForm, IntrospectionField)
+├── plugin/             Vue plugin for app.use() registration
+└── utils/              Pure utilities (convert, storage, findFieldConfiguration, withProps)
+```
+
+- **Codegen** runs at build time in Node.js. It has no Vue dependency.
+- **Composables and Plugin** use Vue's `inject`/`provide` for configuration.
+- **Components** are shipped as `.vue` SFC source files so they are compiled by the consumer's build pipeline. This keeps the package dependency-light and ensures compatibility with any Vue build tooling.
 
 ## License
 
