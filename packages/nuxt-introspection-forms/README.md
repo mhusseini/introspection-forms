@@ -355,11 +355,6 @@ src/
         └── useIntrospectionFormsEnumFilter.ts  Re-export for auto-import
 ```
 
-The module:
-- Uses `@nuxt/kit` to register components, composables, aliases, and plugins.
-- Injects global defaults via `app.provide()` (client-side only).
-- Remains SSR-safe — form rendering happens client-side where DOM interaction is needed.
-
 ## License
 
 MIT
