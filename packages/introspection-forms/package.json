@@ -1,0 +1,48 @@
+{
+  "name": "introspection-forms",
+  "version": "0.1.0",
+  "description": "Schema-driven form generation for Vue 3 from GraphQL introspection metadata",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./codegen": {
+      "types": "./dist/codegen/index.d.ts",
+      "import": "./dist/codegen/index.js"
+    },
+    "./plugin": {
+      "types": "./dist/plugin/index.d.ts",
+      "import": "./dist/plugin/index.js"
+    },
+    "./components/*": "./src/components/*"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "src/components"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@graphql-codegen/plugin-helpers": "^5.1.0"
+  },
+  "peerDependencies": {
+    "graphql": "^16.0.0",
+    "vue": "^3.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.2",
+    "graphql": "^16.9.0",
+    "prettier": "^3.8.3",
+    "tsup": "^8.4.0",
+    "typescript": "^5.7.0",
+    "vue": "^3.5.0"
+  }
+}

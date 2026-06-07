@@ -1,0 +1,37 @@
+{
+  "name": "nuxt-introspection-forms",
+  "version": "0.1.0",
+  "description": "Nuxt module for introspection-forms — schema-driven form generation from GraphQL",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/types.d.ts",
+      "import": "./dist/module.mjs"
+    }
+  },
+  "main": "./dist/module.mjs",
+  "types": "./dist/types.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "nuxt-module-build build",
+    "dev": "nuxt-module-build build --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@nuxt/kit": "^3.16.0",
+    "introspection-forms": "workspace:*"
+  },
+  "peerDependencies": {
+    "nuxt": "^3.16.0 || ^4.0.0",
+    "vue": "^3.4.0"
+  },
+  "devDependencies": {
+    "@nuxt/module-builder": "^0.8.0",
+    "nuxt": "^3.16.0",
+    "typescript": "^5.7.0",
+    "vue": "^3.5.0"
+  }
+}
