@@ -340,20 +340,6 @@ const form = useIntrospectionForm({
 </IntrospectionForm>
 ```
 
-## Architecture
-
-```
-src/
-├── module.ts                       Nuxt module definition
-├── types.ts                        Module option types and Nuxt augmentations
-└── runtime/
-    ├── plugins/
-    │   └── introspection-forms.client.ts    Client plugin providing global defaults
-    └── composables/
-        ├── useIntrospectionForm.ts           Re-export for auto-import
-        └── useIntrospectionFormsEnumFilter.ts  Re-export for auto-import
-```
-
 ## License
 
 MIT

@@ -40,23 +40,21 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@graphql-codegen/plugin-helpers": "^5.1.0"
+    "@apidevtools/swagger-parser": "^12.1.0",
+    "@graphql-codegen/plugin-helpers": "^5.1.0",
+    "openapi-types": "^12.1.3"
   },
   "peerDependencies": {
     "dryvjs": "^1.0.0",
     "dryvue": "^2.0.0",
     "graphql": "^16.0.0",
-    "vue": "^3.4.0",
-    "yaml": "^2.0.0"
+    "vue": "^3.4.0"
   },
   "peerDependenciesMeta": {
     "dryvjs": {
       "optional": true
     },
     "dryvue": {
-      "optional": true
-    },
-    "yaml": {
       "optional": true
     }
   },

@@ -1,43 +1,11 @@
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'fs'
+import { existsSync, mkdirSync, rmSync, writeFileSync } from 'fs'
 import { join, normalize } from 'path'
+import SwaggerParser from '@apidevtools/swagger-parser'
+import type { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 
 interface GeneratedFile {
   name: string
   content: string
-}
-
-interface OpenApiProperty {
-  type?: string
-  format?: string
-  enum?: string[]
-  $ref?: string
-  items?: OpenApiProperty
-  nullable?: boolean
-  default?: unknown
-  properties?: Record<string, OpenApiProperty>
-  required?: string[]
-  allOf?: OpenApiProperty[]
-  oneOf?: OpenApiProperty[]
-  anyOf?: OpenApiProperty[]
-}
-
-interface OpenApiSchema {
-  type?: string
-  format?: string
-  enum?: string[]
-  properties?: Record<string, OpenApiProperty>
-  required?: string[]
-  allOf?: OpenApiProperty[]
-  oneOf?: OpenApiProperty[]
-  anyOf?: OpenApiProperty[]
-  $ref?: string
-}
-
-interface OpenApiDocument {
-  openapi?: string
-  swagger?: string
-  components?: { schemas?: Record<string, OpenApiSchema> }
-  definitions?: Record<string, OpenApiSchema>
 }
 
 /**
@@ -118,8 +86,8 @@ export async function generateFromOpenApi(config: OpenApiCodegenConfig): Promise
   const filePrefix = config.filePrefix ?? 'TypeOf'
   const usePrettier = config.prettier !== false
 
-  const doc = await loadDocument(config.source)
-  const schemas = extractSchemas(doc)
+  const api = await SwaggerParser.dereference(config.source)
+  const schemas = extractSchemas(api)
 
   const files: GeneratedFile[] = []
 
@@ -127,7 +95,7 @@ export async function generateFromOpenApi(config: OpenApiCodegenConfig): Promise
     if (!shouldInclude(schemaName, config.include, config.exclude)) continue
     if (!schema.properties && !schema.allOf) continue
 
-    const resolved = resolveSchema(schema, schemas)
+    const resolved = resolveAllOf(schema as OpenAPIV3.SchemaObject)
     if (!resolved.properties) continue
 
     const requiredFields = new Set(resolved.required ?? [])
@@ -135,11 +103,11 @@ export async function generateFromOpenApi(config: OpenApiCodegenConfig): Promise
     const defaultEntries: string[] = []
 
     for (const [fieldName, prop] of Object.entries(resolved.properties)) {
-      const resolvedProp = resolveProperty(prop, schemas)
+      const schemaProp = prop as OpenAPIV3.SchemaObject
       const isRequired = requiredFields.has(fieldName)
-      const isNullable = !isRequired || resolvedProp.nullable === true
-      const { type, originalType, isArray, isEnum, enumValues } = classifyProperty(resolvedProp, schemas)
-      const defaultValue = getDefaultValue(resolvedProp, type, isNullable, isEnum, enumValues)
+      const isNullable = !isRequired || schemaProp.nullable === true
+      const { type, originalType, isArray, isEnum, enumValues } = classifyProperty(schemaProp)
+      const defaultValue = getDefaultValue(schemaProp, type, isNullable, isEnum, enumValues)
 
       fieldInfos.push(
         JSON.stringify({ name: fieldName, type, originalType, isArray, isNullable, isEnum, enumValues, defaultValue }, null, 2),
@@ -213,59 +181,25 @@ export const ${filePrefix}${typeName}: IntrospectionType${typeGeneric} = {
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-async function loadDocument(source: string): Promise<OpenApiDocument> {
-  let raw: string
-
-  if (/^https?:\/\//i.test(source)) {
-    const response = await fetch(source)
-    if (!response.ok) {
-      throw new Error(`[introspection-forms/openapi] Failed to fetch ${source}: ${response.status}`)
-    }
-    raw = await response.text()
-  } else {
-    raw = readFileSync(source, 'utf-8')
-  }
-
-  // Try JSON first, fall back to YAML
-  try {
-    return JSON.parse(raw)
-  } catch {
-    // Simple YAML subset parser for common OpenAPI files
-    // For full YAML support, users should install the `yaml` package
-    try {
-      const yaml = await import('yaml')
-      return yaml.parse(raw)
-    } catch {
-      throw new Error(
-        '[introspection-forms/openapi] Could not parse source. For YAML files, install the `yaml` package: npm install yaml',
-      )
-    }
-  }
-}
-
-function extractSchemas(doc: OpenApiDocument): Record<string, OpenApiSchema> {
+function extractSchemas(api: OpenAPI.Document): Record<string, OpenAPIV3.SchemaObject> {
   // OpenAPI 3.x
-  if (doc.components?.schemas) return doc.components.schemas
+  if ('components' in api) {
+    const doc = api as OpenAPIV3.Document
+    return (doc.components?.schemas ?? {}) as Record<string, OpenAPIV3.SchemaObject>
+  }
   // Swagger 2.x
-  if (doc.definitions) return doc.definitions
+  if ('definitions' in api) {
+    const doc = api as OpenAPIV2.Document
+    return (doc.definitions ?? {}) as unknown as Record<string, OpenAPIV3.SchemaObject>
+  }
   return {}
 }
 
-function resolveRef(ref: string, schemas: Record<string, OpenApiSchema>): OpenApiSchema | undefined {
-  // #/components/schemas/Foo or #/definitions/Foo
-  const parts = ref.split('/')
-  const name = parts[parts.length - 1]
-  return schemas[name]
-}
-
-function resolveSchema(schema: OpenApiSchema, schemas: Record<string, OpenApiSchema>): OpenApiSchema {
-  if (schema.$ref) {
-    return resolveRef(schema.$ref, schemas) ?? schema
-  }
+function resolveAllOf(schema: OpenAPIV3.SchemaObject): OpenAPIV3.SchemaObject {
   if (schema.allOf) {
-    const merged: OpenApiSchema = { properties: {}, required: [] }
+    const merged: OpenAPIV3.SchemaObject = { properties: {}, required: [] }
     for (const sub of schema.allOf) {
-      const resolved = resolveSchema(sub as OpenApiSchema, schemas)
+      const resolved = resolveAllOf(sub as OpenAPIV3.SchemaObject)
       if (resolved.properties) {
         merged.properties = { ...merged.properties, ...resolved.properties }
       }
@@ -278,35 +212,16 @@ function resolveSchema(schema: OpenApiSchema, schemas: Record<string, OpenApiSch
   return schema
 }
 
-function resolveProperty(prop: OpenApiProperty, schemas: Record<string, OpenApiSchema>): OpenApiProperty {
-  if (prop.$ref) {
-    return (resolveRef(prop.$ref, schemas) as unknown as OpenApiProperty) ?? prop
-  }
-  if (prop.allOf) {
-    const merged: OpenApiProperty = {}
-    for (const sub of prop.allOf) {
-      const resolved = resolveProperty(sub, schemas)
-      Object.assign(merged, resolved)
-      if (resolved.properties) {
-        merged.properties = { ...merged.properties, ...resolved.properties }
-      }
-    }
-    return merged
-  }
-  return prop
-}
-
 function classifyProperty(
-  prop: OpenApiProperty,
-  schemas: Record<string, OpenApiSchema>,
+  prop: OpenAPIV3.SchemaObject,
 ): { type: string; originalType: string; isArray: boolean; isEnum: boolean; enumValues: string[] } {
   if (prop.enum) {
-    return { type: 'enum', originalType: 'enum', isArray: false, isEnum: true, enumValues: prop.enum }
+    return { type: 'enum', originalType: 'enum', isArray: false, isEnum: true, enumValues: prop.enum as string[] }
   }
 
   if (prop.type === 'array' && prop.items) {
-    const inner = resolveProperty(prop.items, schemas)
-    const innerClass = classifyProperty(inner, schemas)
+    const inner = prop.items as OpenAPIV3.SchemaObject
+    const innerClass = classifyProperty(inner)
     return { ...innerClass, isArray: true }
   }
 
@@ -332,7 +247,7 @@ function classifyProperty(
 }
 
 function getDefaultValue(
-  prop: OpenApiProperty,
+  prop: OpenAPIV3.SchemaObject,
   type: string,
   isNullable: boolean,
   isEnum: boolean,
