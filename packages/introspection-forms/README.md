@@ -473,6 +473,7 @@ byFieldType: {
 | `storage` | `'session' \| 'local' \| 'none' \| boolean` | `'session'` | Persistence strategy |
 | `interceptStorage` | `(model: T) => T \| undefined` | — | Transform data loaded from storage |
 | `validatable` | `Record<string, unknown>` | — | Dryv validatable proxy object |
+| `v-model:validate` | `() => Promise<boolean>` | — | Bind to receive the validation trigger function. Call it to run Dryv validation on the form. |
 
 ## Architecture
 

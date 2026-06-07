@@ -7,14 +7,23 @@
       :form="fieldForm"
       :columns="columns"
       :model="(validatable as Record<string, unknown>)"
-      :validatable="(validatable as Record<string, unknown>)"
-      :storage="'none'"
+      dependent
     />
 
     <!-- Error: no component assigned -->
     <div v-else-if="typeof field.component !== 'function'" class="introspection-field-error">
       The field '{{ field.name }}' does not have an assigned component.
     </div>
+
+    <!-- Custom component (no introspection metadata) -->
+    <component
+      v-else-if="!field.introspection"
+      :is="field.component!(model)"
+      :id="id"
+      v-bind="toValues(model, field.props)"
+      v-on="toEmits(model, field.emits)"
+      :validatable="typingProxy"
+    />
 
     <!-- Regular form field -->
     <component
@@ -26,6 +35,7 @@
       :label="field.label?.(model) ?? t(`forms.${type.name}.${field.name}`)"
       :info="field.info?.(model)"
       v-bind="toValues(model, field.props)"
+      v-on="toEmits(model, field.emits)"
       :validatable="typingProxy"
       :disabled="field.disabled?.(model)"
     />
@@ -66,7 +76,7 @@ const visible = computed(
   () => (props.field.visible?.(props.model) ?? true) && (fieldForm.value?.visible(props.model as any) ?? true),
 )
 
-const spanClass = computed(() => `introspection-field span-${props.field.span?.(props.model) ?? props.columns}`)
+const spanClass = computed(() => `introspection-field introspection-field--${props.field.name} span-${props.field.span?.(props.model) ?? props.columns}`)
 
 function toValues(
   item: object,
@@ -74,6 +84,17 @@ function toValues(
 ): Record<string, unknown> {
   return functions
     ? Object.fromEntries(Object.entries(functions).map(([key, value]) => [key, value(item, t)]))
+    : {}
+}
+
+function toEmits(
+  item: object,
+  emits: Record<string, (...args: any[]) => void> | undefined,
+): Record<string, (...args: unknown[]) => void> {
+  return emits
+    ? Object.fromEntries(
+        Object.entries(emits).map(([key, handler]) => [key, (...args: unknown[]) => handler(item, t, ...args)]),
+      )
     : {}
 }
 
