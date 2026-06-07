@@ -13,6 +13,10 @@
       "types": "./dist/codegen/index.d.ts",
       "import": "./dist/codegen/index.js"
     },
+    "./openapi": {
+      "types": "./dist/openapi/index.d.ts",
+      "import": "./dist/openapi/index.js"
+    },
     "./plugin": {
       "types": "./dist/plugin/index.d.ts",
       "import": "./dist/plugin/index.js"
@@ -37,11 +41,13 @@
     "dryvjs": "^1.0.0",
     "dryvue": "^2.0.0",
     "graphql": "^16.0.0",
-    "vue": "^3.4.0"
+    "vue": "^3.4.0",
+    "yaml": "^2.0.0"
   },
   "peerDependenciesMeta": {
     "dryvjs": { "optional": true },
-    "dryvue": { "optional": true }
+    "dryvue": { "optional": true },
+    "yaml": { "optional": true }
   },
   "devDependencies": {
     "@types/node": "^25.9.2",

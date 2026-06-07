@@ -32,7 +32,7 @@
       :id="id"
       :name="`${type.name}.${field.name}`"
       :required="(validatable as any)?.required"
-      :label="field.label?.(model) ?? t(`forms.${type.name}.${field.name}`)"
+      :label="field.label?.(model) ?? t(`${translationPrefix}${type.name}.${field.name}`)"
       :info="field.info?.(model)"
       v-bind="toValues(model, field.props)"
       v-on="toEmits(model, field.emits)"
@@ -43,7 +43,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject } from 'vue'
+import { computed, inject, useId } from 'vue'
 import type { DryvValidatableField } from 'dryvjs'
 import type { FieldRuntime, IntrospectionField, IntrospectionType, Translate, ValidatableField } from '../types'
 import { convert } from '../utils/convert'
@@ -61,7 +61,8 @@ const props = withDefaults(
 )
 
 const t = inject<Translate>('introspection-forms:translate', (key: string) => key)
-const id = `field-${props.field.name}-${Math.random().toString(36).slice(2, 8)}`
+const translationPrefix = inject<string>('introspection-forms:translationPrefix', 'forms.')
+const id = useId()
 
 const typingProxy = computed(() =>
   props.validatable && props.field?.introspection

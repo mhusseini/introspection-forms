@@ -1,13 +1,14 @@
 # introspection-forms
 
-Schema-driven form generation for Vue 3 from GraphQL introspection metadata. A code generator reads your GraphQL schema and produces TypeScript metadata for every `input` type — field types, nullability, enum values, defaults, and a factory function. At runtime, a composable turns that metadata into a fully reactive form with automatic component resolution, validation integration, and conditional logic.
+Schema-driven form generation for Vue 3 from GraphQL or OpenAPI introspection metadata. A code generator reads your GraphQL schema or OpenAPI specification and produces TypeScript metadata for every input/schema type — field types, nullability, enum values, defaults, and a factory function. At runtime, a composable turns that metadata into a fully reactive form with automatic component resolution, validation integration, and conditional logic.
 
 ## Table of Contents
 
 - [Installation](#installation)
 - [How It Works](#how-it-works)
 - [Setup](#setup)
-  - [1. Code Generation](#1-code-generation)
+  - [1a. Code Generation (GraphQL)](#1a-code-generation-graphql)
+  - [1b. Code Generation (OpenAPI)](#1b-code-generation-openapi)
   - [2. Vue Plugin](#2-vue-plugin)
   - [3. Translation (Optional)](#3-translation-optional)
 - [Usage](#usage)
@@ -27,6 +28,7 @@ Schema-driven form generation for Vue 3 from GraphQL introspection metadata. A c
   - [Resolution Order](#resolution-order)
   - [Static vs. Dynamic Defaults](#static-vs-dynamic-defaults)
 - [Codegen Plugin Configuration](#codegen-plugin-configuration)
+- [OpenAPI Codegen Configuration](#openapi-codegen-configuration)
 - [API Reference](#api-reference)
 - [Architecture](#architecture)
 - [License](#license)
@@ -37,8 +39,11 @@ Schema-driven form generation for Vue 3 from GraphQL introspection metadata. A c
 # Core package
 yarn add introspection-forms
 
-# Code generation (dev dependency)
+# Code generation from GraphQL (dev dependency)
 yarn add -D @graphql-codegen/cli graphql
+
+# Code generation from OpenAPI (dev dependency, pick one or both)
+yarn add -D yaml   # only needed if your OpenAPI spec is YAML
 
 # Optional: validation
 yarn add dryvjs dryvue
@@ -47,7 +52,7 @@ yarn add dryvjs dryvue
 yarn add -D prettier
 ```
 
-Peer dependencies: `vue >= 3.4`, `graphql >= 16`. Optional peer dependencies: `dryvjs >= 1.0`, `dryvue >= 2.0` (for validation).
+Peer dependencies: `vue >= 3.4`, `graphql >= 16`. Optional peer dependencies: `dryvjs >= 1.0`, `dryvue >= 2.0` (for validation), `yaml >= 2.0` (for YAML OpenAPI specs).
 
 ## How It Works
 
@@ -57,7 +62,10 @@ Peer dependencies: `vue >= 3.4`, `graphql >= 16`. Optional peer dependencies: `d
 │  (input types)   │                     │  (IntrospectionType<T>) │
 └──────────────────┘                     └────────────┬────────────┘
                                                       │
-                                                      ▼
+┌──────────────────┐   generateFromOpenApi            │
+│  OpenAPI Spec    │ ──────────────────▶              │
+│  (schemas)       │                                  │
+└──────────────────┘                                  ▼
                                          ┌─────────────────────────┐
                                          │  useIntrospectionForm() │
                                          │  + component mapping    │
@@ -71,14 +79,14 @@ Peer dependencies: `vue >= 3.4`, `graphql >= 16`. Optional peer dependencies: `d
                                          └─────────────────────────┘
 ```
 
-1. Define your data model as a GraphQL `input` type.
-2. Run the codegen plugin — it produces one TypeScript file per input type, each exporting an `IntrospectionType<T>` constant.
+1. Define your data model as a GraphQL `input` type **or** an OpenAPI schema.
+2. Run the codegen plugin (GraphQL) or `generateFromOpenApi()` (OpenAPI) — it produces one TypeScript file per type, each exporting an `IntrospectionType<T>` constant.
 3. In your Vue app, call `useIntrospectionForm()` with the generated metadata, optional validation rules, and per-field config.
 4. Render with `<IntrospectionForm>` — components are resolved automatically from the global plugin configuration.
 
 ## Setup
 
-### 1. Code Generation
+### 1a. Code Generation (GraphQL)
 
 Create a `codegen.config.ts`:
 
@@ -153,6 +161,85 @@ export const TypeOfContactFormInput: IntrospectionType<ContactFormInput> = {
 }
 ```
 
+### 1b. Code Generation (OpenAPI)
+
+Use `generateFromOpenApi()` to generate introspection metadata from an OpenAPI 3.x or Swagger 2.x specification. The source can be a local file (JSON or YAML) or a remote URL.
+
+#### From a local file
+
+Create a script (e.g. `scripts/generate-forms.ts`):
+
+```ts
+import { generateFromOpenApi } from 'introspection-forms/openapi'
+
+await generateFromOpenApi({
+  source: './openapi.yaml',
+  output: './src/generated/introspection',
+  typesImport: '../api-types',
+})
+```
+
+Run it with `tsx` or any TypeScript runner:
+
+```bash
+npx tsx scripts/generate-forms.ts
+```
+
+#### From a remote URL
+
+```ts
+import { generateFromOpenApi } from 'introspection-forms/openapi'
+
+await generateFromOpenApi({
+  source: 'https://petstore3.swagger.io/api/v3/openapi.json',
+  output: './src/generated/introspection',
+})
+```
+
+#### Filtering schemas
+
+```ts
+await generateFromOpenApi({
+  source: './openapi.yaml',
+  output: './src/generated/introspection',
+  // Only generate for schemas matching these patterns
+  include: [/Input$/, 'CreateUserRequest'],
+  // Skip internal schemas
+  exclude: [/^Internal/],
+})
+```
+
+#### Output
+
+The output structure is identical to the GraphQL codegen:
+
+```
+src/generated/introspection/
+├── TypeOfCreateUserRequest.ts
+├── TypeOfUpdateUserRequest.ts
+├── TypeOfAddress.ts
+└── index.ts              ← barrel re-exporting all types
+```
+
+Each generated file:
+
+```ts
+import type { IntrospectionType } from 'introspection-forms'
+import type { CreateUserRequest } from '../api-types'
+
+export const TypeOfCreateUserRequest: IntrospectionType<CreateUserRequest> = {
+  name: 'CreateUserRequest',
+  fields: [
+    { name: 'firstName', type: 'string', originalType: 'string', isNullable: false, isEnum: false, ... },
+    { name: 'role', type: 'enum', originalType: 'enum', isNullable: true, isEnum: true, enumValues: ['admin', 'user'], ... },
+    // ...
+  ],
+  create(defaults?: Partial<CreateUserRequest>): CreateUserRequest {
+    return { firstName: '', role: 'admin', ...(defaults || {}) } as CreateUserRequest
+  },
+}
+```
+
 ### 2. Vue Plugin
 
 Register the plugin to configure which components render which field types:
@@ -169,6 +256,9 @@ const app = createApp(App)
 app.use(IntrospectionFormsPlugin, {
   // Optionally register the built-in components globally
   components: { IntrospectionForm, IntrospectionField },
+
+  // Optional: provide a translation function for label resolution
+  translate: (key) => i18n.global.t(key),
 
   defaults: {
     byFieldType: {
@@ -199,16 +289,45 @@ app.use(IntrospectionFormsPlugin, {
 
 ### 3. Translation (Optional)
 
-Provide a translation function so labels and enum values can be localized:
+Provide a translation function so labels and enum values can be localized. Pass it as the `translate` option when installing the plugin:
 
 ```ts
-import { provideTranslate } from 'introspection-forms/plugin'
-
-// In your app setup:
-provideTranslate(app, (key) => i18n.global.t(key))
+app.use(IntrospectionFormsPlugin, {
+  translate: (key) => i18n.global.t(key),
+  defaults: { /* ... */ },
+})
 ```
 
-Labels default to `forms.<TypeName>.<fieldName>` keys. Without a translator, field names are returned as-is.
+#### How label resolution works
+
+When a field does not have an explicit `label` configured, the component builds a translation key automatically and passes it to the `translate` function:
+
+```
+<translationPrefix><TypeName>.<fieldName>
+```
+
+For example, given a type `ContactFormInput` with a field `firstName`, the generated key is `forms.ContactFormInput.firstName`.
+
+- **With a `translate` function** — the key is passed to your translator, which can return a localized string (e.g. `"First Name"` or `"Vorname"`).
+- **Without a `translate` function** — the raw key string is used as the label directly (e.g. `"forms.ContactFormInput.firstName"`).
+
+#### Configuring the prefix
+
+The `translationPrefix` option controls the prefix prepended to the auto-generated key. It defaults to `'forms.'`. You can change it or disable it entirely:
+
+```ts
+// Custom prefix — keys become "labels.ContactFormInput.firstName"
+app.use(IntrospectionFormsPlugin, {
+  translate: (key) => i18n.global.t(key),
+  translationPrefix: 'labels.',
+})
+
+// No prefix — keys become "ContactFormInput.firstName"
+app.use(IntrospectionFormsPlugin, {
+  translate: (key) => i18n.global.t(key),
+  translationPrefix: '',
+})
+```
 
 ## Usage
 
@@ -540,6 +659,19 @@ byFieldType: {
 | `filePrefix` | `string` | `'TypeOf'` | Prefix for generated const and file names |
 | `prettier` | `boolean` | `true` | Format output with prettier |
 
+## OpenAPI Codegen Configuration
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `source` | `string` | — (required) | Path to a local OpenAPI file (JSON/YAML) or a URL |
+| `output` | `string` | — (required) | Directory for generated TypeScript files |
+| `introspectionTypeImport` | `string` | `'introspection-forms'` | Import path for the `IntrospectionType` interface |
+| `typesImport` | `string` | `undefined` | Import path for generated types. If unset, inline types are used |
+| `filePrefix` | `string` | `'TypeOf'` | Prefix for generated const and file names |
+| `prettier` | `boolean` | `true` | Format output with prettier |
+| `include` | `(string \| RegExp)[]` | `undefined` | Only generate schemas matching these patterns |
+| `exclude` | `(string \| RegExp)[]` | `undefined` | Skip schemas matching these patterns |
+
 ## API Reference
 
 ### Exports from `introspection-forms`
@@ -553,7 +685,7 @@ byFieldType: {
 | `findFieldConfiguration` | utility | Resolve defaults for a field |
 | `readStorage` / `writeStorage` / `clearStorage` | utility | Browser storage helpers |
 | `IntrospectionFormsPlugin` | Vue plugin | Global configuration and component registration |
-| `provideTranslate` | function | Provide a custom translation function |
+| `provideTranslate` | function | *(deprecated)* Provide a custom translation function — use the `translate` plugin option instead |
 | `INTROSPECTION_FORMS_KEY` | InjectionKey | For advanced provide/inject usage |
 
 ### Exports from `introspection-forms/codegen`
@@ -562,6 +694,14 @@ byFieldType: {
 |--------|------|-------------|
 | `plugin` | function | The GraphQL Codegen plugin entry point |
 | `default` | CodegenPlugin | Default export for codegen CLI integration |
+
+### Exports from `introspection-forms/openapi`
+
+| Export | Kind | Description |
+|--------|------|-------------|
+| `generateFromOpenApi` | function | Generate introspection metadata from an OpenAPI spec |
+| `default` | function | Default export (same as `generateFromOpenApi`) |
+| `OpenApiCodegenConfig` | type | Configuration options for the OpenAPI generator |
 
 ### Exports from `introspection-forms/components/*`
 
@@ -574,7 +714,7 @@ byFieldType: {
 
 | Type | Source | Description |
 |------|--------|-------------|
-| `IntrospectionType<T>` | `introspection-forms` | Generated metadata for a GraphQL input type |
+| `IntrospectionType<T>` | `introspection-forms` | Generated metadata for a schema type (GraphQL or OpenAPI) |
 | `IntrospectionField` | `introspection-forms` | Metadata for a single field (name, type, nullability, enum values) |
 | `FormConfig<T>` | `introspection-forms` | User-provided form configuration (field → boolean or FieldConfiguration) |
 | `FormRuntime<T>` | `introspection-forms` | Processed runtime form configuration passed to components |
@@ -621,13 +761,14 @@ The package is structured into independent layers:
 src/
 ├── types.ts            Core type definitions
 ├── codegen/            GraphQL Codegen plugin (Node.js, runs at build time)
+├── openapi/            OpenAPI codegen (Node.js, runs at build time)
 ├── composables/        Vue composables (useIntrospectionForm, useEnumFilter)
 ├── components/         Vue SFCs (IntrospectionForm, IntrospectionField)
 ├── plugin/             Vue plugin for app.use() registration
 └── utils/              Pure utilities (convert, storage, findFieldConfiguration, withProps)
 ```
 
-- **Codegen** runs at build time in Node.js. It has no Vue dependency.
+- **Codegen** and **OpenAPI** run at build time in Node.js. They have no Vue dependency.
 - **Composables and Plugin** use Vue's `inject`/`provide` for configuration.
 - **Components** are shipped as `.vue` SFC source files so they are compiled by the consumer's build pipeline. This keeps the package dependency-light and ensures compatibility with any Vue build tooling.
 

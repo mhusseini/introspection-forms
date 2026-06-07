@@ -195,6 +195,15 @@ export interface IntrospectionFormsDefaults {
 export interface IntrospectionFormsPluginOptions {
   /** Global defaults for component resolution. */
   defaults?: IntrospectionFormsDefaults
+  /** A custom translation function for label resolution. */
+  translate?: Translate
+  /**
+   * Prefix prepended to auto-generated translation keys for field labels.
+   * The final key is `${translationPrefix}<TypeName>.<fieldName>`.
+   * Set to an empty string to disable the prefix entirely.
+   * @default 'forms.'
+   */
+  translationPrefix?: string
 }
 
 /**

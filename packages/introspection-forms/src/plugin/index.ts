@@ -17,6 +17,7 @@ import { INTROSPECTION_FORMS_KEY } from './keys'
  * const app = createApp(App)
  * app.use(IntrospectionFormsPlugin, {
  *   components: { IntrospectionForm, IntrospectionField },
+ *   translate: (key) => i18n.global.t(key),
  *   defaults: {
  *     byFieldType: {
  *       string: { component: FormInput },
@@ -35,6 +36,12 @@ export const IntrospectionFormsPlugin: Plugin<[IntrospectionFormsPluginOptions &
       app.provide(INTROSPECTION_FORMS_KEY, options.defaults)
     }
 
+    if (options?.translate) {
+      app.provide('introspection-forms:translate', options.translate)
+    }
+
+    app.provide('introspection-forms:translationPrefix', options?.translationPrefix ?? 'forms.')
+
     if (options?.components?.IntrospectionForm) {
       app.component('IntrospectionForm', options.components.IntrospectionForm)
     }
@@ -45,8 +52,7 @@ export const IntrospectionFormsPlugin: Plugin<[IntrospectionFormsPluginOptions &
 }
 
 /**
- * Provide a custom translation function for label resolution.
- * Call this in a setup function or plugin to override the default identity translator.
+ * @deprecated Use the `translate` option in `IntrospectionFormsPlugin` instead.
  */
 export function provideTranslate(app: App, t: Translate): void {
   app.provide('introspection-forms:translate', t)
