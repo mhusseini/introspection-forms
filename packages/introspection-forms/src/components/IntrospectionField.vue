@@ -44,13 +44,14 @@
 
 <script setup lang="ts">
 import { computed, inject } from 'vue'
+import type { DryvValidatableField } from 'dryvjs'
 import type { FieldRuntime, IntrospectionField, IntrospectionType, Translate, ValidatableField } from '../types'
 import { convert } from '../utils/convert'
 import IntrospectionForm from './IntrospectionForm.vue'
 
 const props = withDefaults(
   defineProps<{
-    validatable?: ValidatableField | unknown
+    validatable?: DryvValidatableField | ValidatableField | unknown
     model: object
     type: IntrospectionType
     field: Partial<FieldRuntime>

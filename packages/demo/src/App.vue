@@ -11,15 +11,14 @@
           <IntrospectionForm
             :form="form"
             :model="model"
-            :validatable="validatable"
+            v-model:validate="validate"
             :storage="false"
-            @submit.prevent="handleSubmit"
           >
             <div class="form-actions">
               <button type="button" class="btn btn-primary" :disabled="isSubmitting" @click="handleSubmit">
                 {{ isSubmitting ? 'Submitting...' : 'Register' }}
               </button>
-              <button type="button" class="btn btn-secondary" @click="revert">Reset</button>
+              <button type="button" class="btn btn-secondary" @click="resetForm">Reset</button>
             </div>
           </IntrospectionForm>
         </Suspense>
@@ -30,7 +29,7 @@
         <h3>Model State</h3>
         <pre>{{ JSON.stringify(model, null, 2) }}</pre>
         <h3>Validation</h3>
-        <pre>{{ JSON.stringify(validationState, null, 2) }}</pre>
+        <pre>{{ JSON.stringify({}, null, 2) }}</pre>
       </aside>
     </main>
 
@@ -46,8 +45,7 @@
 
 <script setup lang="ts">
 import './App.css'
-import { ref, reactive, computed, watch } from 'vue'
-import { useDryv } from 'dryvue'
+import { ref, reactive, watch } from 'vue'
 import { useIntrospectionForm } from 'introspection-forms'
 import IntrospectionForm from 'introspection-forms/components/IntrospectionForm.vue'
 import { TypeOfRegistrationFormInput, TypeOfAddressInput } from './generated/introspection'
@@ -57,19 +55,17 @@ import FormSelect from './components/FormSelect.vue'
 import FormRadio from './components/FormRadio.vue'
 
 // Create model from introspection metadata, wrapped in reactive for Vue tracking
-const formData = reactive(TypeOfRegistrationFormInput.create({
+const model = reactive(TypeOfRegistrationFormInput.create({
   useSameAddress: true,
   acceptNewsletter: false,
   billingAddress: TypeOfAddressInput.create(),
 }))
 
-// Set up Dryv validation for the main form
-const { validatable, model, validate, revert } = useDryv(formData, RegistrationFormValidationSet)
-
+const validate = ref<(checkOnly?: boolean) => Promise<boolean>>()
 const isSubmitting = ref(false)
 const submitted = ref(false)
 
-// Clear billingAddress when useSameAddress is unchecked
+// Initialize billingAddress when useSameAddress is unchecked
 watch(() => model.useSameAddress, (useSame) => {
   if (!useSame && !model.billingAddress) {
     model.billingAddress = TypeOfAddressInput.create()
@@ -158,21 +154,19 @@ const form = useIntrospectionForm(TypeOfRegistrationFormInput, RegistrationFormV
   acceptNewsletter: true,
 })
 
-// Validation state for debug
-const validationState = computed(() => {
-  const fields: Record<string, string | null> = {}
-  for (const key of Object.keys(validatable)) {
-    const v = (validatable as Record<string, { text: string | null }>)[key]
-    if (v?.text) fields[key] = v.text
-  }
-  return fields
-})
+function resetForm() {
+  Object.assign(model, TypeOfRegistrationFormInput.create({
+    useSameAddress: true,
+    acceptNewsletter: false,
+    billingAddress: TypeOfAddressInput.create(),
+  }))
+}
 
 async function handleSubmit() {
   isSubmitting.value = true
   try {
-    const result = await validate()
-    if (result?.success) {
+    const success = await validate.value?.()
+    if (success) {
       submitted.value = true
     }
   } finally {

@@ -25,6 +25,8 @@
 <script setup lang="ts" generic="TModel extends Record<string, unknown>">
 import { ref, computed, onMounted, watch, watchEffect, unref, inject, type Ref } from 'vue'
 import type { FormRuntime, FieldRuntime, IntrospectionField as IntrospectionFieldType, Translate } from '../types'
+import type { DryvValidatableObject, DryvValidationResult, DryvValidationRuleSet } from 'dryvjs'
+import type { UseDryvResult } from 'dryvue'
 import { readStorage, writeStorage } from '../utils/storage'
 import IntrospectionField from './IntrospectionField.vue'
 
@@ -83,11 +85,12 @@ const t = inject<Translate>('introspection-forms:translate', (key: string) => ke
  * Creates a manual proxy mimicking Dryv's interface.
  */
 interface FormSession {
-  resolvedValidatable: Record<string, unknown>
+  resolvedValidatable: DryvValidatableObject<TModel> | Record<string, unknown>
   innerModel: TModel | Ref<TModel>
-  validate: (checkOnly?: boolean) => Promise<{ success: boolean; hasErrors?: boolean; hasNewWarnings?: boolean }>
+  validate: () => Promise<DryvValidationResult | { success: boolean }>
   dirty?: Ref<boolean>
   reset?: () => void
+  revert?: () => void
   parameters?: Ref<object | undefined>
 }
 
@@ -108,14 +111,18 @@ if (props.dependent) {
     validate: async () => ({ success: true }),
   }
 } else if (props.form.rules && useDryvImport) {
-  const dryvResult = useDryvImport<TModel>(props.model, props.form.rules)
+  const dryvResult: UseDryvResult<TModel> = useDryvImport<TModel>(
+    props.model,
+    props.form.rules as DryvValidationRuleSet<TModel>,
+  )
   session = {
-    resolvedValidatable: dryvResult.validatable as Record<string, unknown>,
-    innerModel: dryvResult.model as Ref<TModel>,
-    validate: dryvResult.validate as FormSession['validate'],
-    dirty: (dryvResult as { dirty?: Ref<boolean> }).dirty,
-    reset: (dryvResult as { reset?: () => void }).reset,
-    parameters: (dryvResult as { parameters?: Ref<object | undefined> }).parameters,
+    resolvedValidatable: dryvResult.validatable,
+    innerModel: dryvResult.model as TModel,
+    validate: dryvResult.validate,
+    dirty: dryvResult.dirty,
+    reset: dryvResult.reset,
+    revert: dryvResult.revert,
+    parameters: dryvResult.parameters as Ref<object | undefined>,
   }
 } else {
   session = {
@@ -137,13 +144,14 @@ if (props.dependent) {
   }
 }
 
-const { resolvedValidatable, innerModel, dirty, reset, parameters } = session
+const { resolvedValidatable, innerModel, dirty, reset, revert, parameters } = session
 
 // Sync validatable with props.model changes
 if (!props.dependent && resolvedValidatable && props.model) {
   watchEffect(() => {
-    if ((resolvedValidatable as unknown as Ref<object>)?.value) {
-      Object.assign((resolvedValidatable as unknown as Ref<object>).value, props.model)
+    const validatableRef = resolvedValidatable as unknown as Ref<object>
+    if (validatableRef?.value) {
+      Object.assign(validatableRef.value, props.model)
     }
   })
 }
@@ -171,7 +179,7 @@ watchEffect(() => {
 
 // Expose validate command
 validateModel.value = async (checkOnly?: boolean) => {
-  const result = await session.validate(checkOnly)
+  const result = await session.validate() as DryvValidationResult
 
   const validationSuccessful = !result.hasErrors && !result.hasNewWarnings
 
