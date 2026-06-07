@@ -15,16 +15,12 @@
 </template>
 
 <script setup lang="ts">
+import type { IntrospectionFormEditorProps } from 'introspection-forms'
+
 withDefaults(
-  defineProps<{
-    id?: string
-    name?: string
-    label?: string
+  defineProps<IntrospectionFormEditorProps & {
     type?: string
     placeholder?: string
-    disabled?: boolean
-    required?: boolean
-    validatable?: { value: unknown; text: string | null }
   }>(),
   { type: 'text' },
 )

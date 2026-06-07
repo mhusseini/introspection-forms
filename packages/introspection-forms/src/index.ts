@@ -20,6 +20,7 @@ export type {
   IntrospectionFormsPluginOptions,
   IntrospectionFormOptions,
   ValidatableField,
+  IntrospectionFormEditorProps,
 } from './types'
 
 // Composables

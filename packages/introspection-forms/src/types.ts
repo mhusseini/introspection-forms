@@ -226,3 +226,15 @@ export interface ValidatableField {
   text: string | null
   required?: boolean
 }
+
+/**
+ * Common props passed by IntrospectionField to every editor component.
+ */
+export interface IntrospectionFormEditorProps {
+  id?: string
+  name?: string
+  label?: string
+  disabled?: boolean
+  required?: boolean
+  validatable?: ValidatableField
+}

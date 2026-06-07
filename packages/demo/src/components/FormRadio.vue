@@ -18,20 +18,15 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import type { IntrospectionFormEditorProps } from 'introspection-forms'
 
 export interface RadioOption {
   value: unknown
   label: string
 }
 
-const props = defineProps<{
-  id?: string
-  name?: string
-  label?: string
-  disabled?: boolean
-  required?: boolean
+const props = defineProps<IntrospectionFormEditorProps & {
   options?: RadioOption[] | ((model: unknown, t: (key: string) => string) => RadioOption[])
-  validatable?: { value: unknown; text: string | null }
 }>()
 
 const resolvedOptions = computed(() => {

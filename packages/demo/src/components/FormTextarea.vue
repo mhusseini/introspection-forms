@@ -14,13 +14,10 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
-  id?: string
-  name?: string
-  label?: string
+import type { IntrospectionFormEditorProps } from 'introspection-forms'
+
+defineProps<IntrospectionFormEditorProps & {
   placeholder?: string
-  disabled?: boolean
   rows?: number
-  validatable?: { value: unknown; text: string | null }
 }>()
 </script>

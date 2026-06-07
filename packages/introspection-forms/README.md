@@ -737,16 +737,9 @@ Additionally, any props configured via the field's `props` option or global defa
 </template>
 
 <script setup lang="ts">
-import type { DryvValidatableField } from 'dryvjs'
+import type { IntrospectionFormEditorProps } from 'introspection-forms'
 
-defineProps<{
-  id?: string
-  name?: string
-  label?: string
-  disabled?: boolean
-  required?: boolean
-  validatable?: DryvValidatableField
-}>()
+defineProps<IntrospectionFormEditorProps>()
 </script>
 ```
 
@@ -824,6 +817,7 @@ Your components can declare additional props (e.g. `type`, `placeholder`, `optio
 | `FieldConfiguration` | `introspection-forms` | Full per-field config (component, props, visible, disabled, span, label, info, emits, form) |
 | `FieldRuntime` | `introspection-forms` | Processed field config with all values as functions |
 | `ValidatableField` | `introspection-forms` | Minimal validatable field interface (value, text, required) |
+| `IntrospectionFormEditorProps` | `introspection-forms` | Common props passed to every editor component (id, name, label, disabled, required, validatable) |
 | `IntrospectionFormsDefaults` | `introspection-forms` | Global defaults shape (byFieldType, byOriginalType, byFieldName, enumFilters) |
 | `Translate` | `introspection-forms` | `(key: string, params?) => string` |
 | `DryvValidatableObject<T>` | `dryvjs` | Typed validatable proxy from Dryv. Each property is a `DryvValidatableField`. |

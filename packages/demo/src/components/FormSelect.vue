@@ -19,20 +19,15 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import type { IntrospectionFormEditorProps } from 'introspection-forms'
 
 export interface SelectOption {
   value: unknown
   label: string
 }
 
-const props = defineProps<{
-  id?: string
-  name?: string
-  label?: string
-  disabled?: boolean
-  required?: boolean
+const props = defineProps<IntrospectionFormEditorProps & {
   options?: SelectOption[] | ((model: unknown, t: (key: string) => string) => SelectOption[])
-  validatable?: { value: unknown; text: string | null }
 }>()
 
 const resolvedOptions = computed(() => {

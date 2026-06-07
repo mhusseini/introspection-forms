@@ -14,12 +14,7 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
-  id?: string
-  name?: string
-  label?: string
-  disabled?: boolean
-  required?: boolean
-  validatable?: { value: unknown; text: string | null }
-}>()
+import type { IntrospectionFormEditorProps } from 'introspection-forms'
+
+defineProps<IntrospectionFormEditorProps>()
 </script>
