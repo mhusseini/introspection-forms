@@ -12,13 +12,14 @@
             :form="form"
             :model="model"
             v-model:validate="validate"
+            v-model:reset="reset"
             :storage="false"
           >
             <div class="form-actions">
               <button type="button" class="btn btn-primary" :disabled="isSubmitting" @click="handleSubmit">
                 {{ isSubmitting ? 'Submitting...' : 'Register' }}
               </button>
-              <button type="button" class="btn btn-secondary" @click="resetForm">Reset</button>
+              <button type="button" class="btn btn-secondary" @click="reset">Reset</button>
             </div>
           </IntrospectionForm>
         </Suspense>
@@ -62,6 +63,7 @@ const model = reactive(TypeOfRegistrationFormInput.create({
 }))
 
 const validate = ref<(checkOnly?: boolean) => Promise<boolean>>()
+const reset = ref<() => void>()
 const isSubmitting = ref(false)
 const submitted = ref(false)
 
@@ -153,14 +155,6 @@ const form = useIntrospectionForm(TypeOfRegistrationFormInput, RegistrationFormV
   acceptTerms: true,
   acceptNewsletter: true,
 })
-
-function resetForm() {
-  Object.assign(model, TypeOfRegistrationFormInput.create({
-    useSameAddress: true,
-    acceptNewsletter: false,
-    billingAddress: TypeOfAddressInput.create(),
-  }))
-}
 
 async function handleSubmit() {
   isSubmitting.value = true

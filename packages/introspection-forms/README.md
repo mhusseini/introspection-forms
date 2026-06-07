@@ -13,6 +13,10 @@ Schema-driven form generation for Vue 3 from GraphQL introspection metadata. A c
 - [Usage](#usage)
   - [Basic Form](#basic-form)
   - [With Validation](#with-validation)
+  - [Validation and Reset via v-model](#validation-and-reset-via-v-model)
+  - [Built-in Dryv Integration](#built-in-dryv-integration)
+  - [Dependent Forms](#dependent-forms)
+  - [Dirty Tracking and Loaded State](#dirty-tracking-and-loaded-state)
   - [Dynamic / Conditional Fields](#dynamic--conditional-fields)
   - [Nested Forms](#nested-forms)
   - [Type-Safe Props](#type-safe-props-with-withprops)
@@ -36,11 +40,14 @@ yarn add introspection-forms
 # Code generation (dev dependency)
 yarn add -D @graphql-codegen/cli graphql
 
+# Optional: validation
+yarn add dryvjs dryvue
+
 # Optional: prettier for formatted output
 yarn add -D prettier
 ```
 
-Peer dependencies: `vue >= 3.4`, `graphql >= 16`.
+Peer dependencies: `vue >= 3.4`, `graphql >= 16`. Optional peer dependencies: `dryvjs >= 1.0`, `dryvue >= 2.0` (for validation).
 
 ## How It Works
 
@@ -232,25 +239,139 @@ const form = useIntrospectionForm(TypeOfContactFormInput, {
 
 ### With Validation
 
-Pass a [Dryv](https://github.com/mhusseini/dryvjs) validation rule set as the second argument:
+Pass a [Dryv](https://github.com/mhusseini/dryvjs) validation rule set as the second argument to `useIntrospectionForm`. The form's `rules` are stored in the `FormRuntime` and can be picked up by `<IntrospectionForm>` for automatic validation integration.
+
+There are two ways to set up validation: **external** (you manage the Dryv session yourself) and **built-in** (the component creates it internally). In both cases, `<IntrospectionForm>` wires the validatable proxy to each field automatically, providing inline error messages via each field's `validatable.text` property.
+
+#### External Dryv Session
+
+Create the Dryv session yourself and pass the `validatable` object as a prop:
 
 ```ts
+import { reactive, ref } from 'vue'
 import { useDryv } from 'dryvue'
+import { useIntrospectionForm } from 'introspection-forms'
+import { TypeOfContactFormInput } from './generated/introspection'
+import { ContactFormValidationSet } from './validation/ContactFormRules'
 
-const { validatable, model, validate } = useDryv(data.value, ContactFormValidationSet)
+const model = reactive(TypeOfContactFormInput.create())
+const { validatable, validate } = useDryv(model, ContactFormValidationSet)
 
-const form = useIntrospectionForm(
-  TypeOfContactFormInput,
-  ContactFormValidationSet,
-  {
-    firstName: true,
-    lastName: true,
-    email: true,
-  },
-)
+const form = useIntrospectionForm(TypeOfContactFormInput, ContactFormValidationSet, {
+  firstName: true,
+  lastName: true,
+  email: true,
+})
 ```
 
-The `<IntrospectionForm>` component automatically wires the validatable proxy to each field, displaying inline error messages.
+```vue
+<template>
+  <IntrospectionForm :form="form" :model="model" :validatable="validatable">
+    <button @click.prevent="validate">Submit</button>
+  </IntrospectionForm>
+</template>
+```
+
+This gives you full control over the Dryv session — you can call `validate()`, `reset()`, `revert()`, and access `dirty`, `valid`, etc. directly.
+
+### Validation and Reset via v-model
+
+`<IntrospectionForm>` exposes `validate` and `reset` functions via `v-model`, allowing the parent to trigger validation and reset without managing the Dryv session directly:
+
+```ts
+const validate = ref<(checkOnly?: boolean) => Promise<boolean>>()
+const reset = ref<() => void>()
+```
+
+```vue
+<template>
+  <IntrospectionForm
+    :form="form"
+    :model="model"
+    v-model:validate="validate"
+    v-model:reset="reset"
+  >
+    <button @click="validate?.()">Submit</button>
+    <button @click="reset?.()">Reset</button>
+  </IntrospectionForm>
+</template>
+```
+
+The `validate` function returns a `Promise<boolean>` — `true` if validation passed, `false` otherwise. It also accepts an optional `checkOnly` parameter: when `true`, the validation result is returned but the form state is immediately reset (useful for pre-flight checks). On successful validation, the component syncs the inner model back to `props.model` and persists to storage (if configured).
+
+The `reset` function calls Dryv's `revert()` (undo field changes) and `reset()` (clear validation state).
+
+### Built-in Dryv Integration
+
+When `form.rules` is set and no external `validatable` is passed, the component creates a Dryv session internally. This is the simplest setup — validation is fully managed by the component:
+
+```ts
+const model = reactive(TypeOfContactFormInput.create())
+
+const form = useIntrospectionForm(TypeOfContactFormInput, ContactFormValidationSet, {
+  firstName: true,
+  lastName: true,
+  email: true,
+})
+
+const validate = ref<(checkOnly?: boolean) => Promise<boolean>>()
+```
+
+```vue
+<template>
+  <!-- Suspense is required when using built-in Dryv (the component uses top-level await) -->
+  <Suspense>
+    <IntrospectionForm
+      :form="form"
+      :model="model"
+      v-model:validate="validate"
+    >
+      <button @click="validate?.()">Submit</button>
+    </IntrospectionForm>
+  </Suspense>
+</template>
+```
+
+The component dynamically imports `dryvue` at mount time. If `dryvue` is not installed, the component falls back to a no-validation proxy — all fields remain editable and `validate()` always returns `true`.
+
+> **Note:** Because the component uses a top-level `await` for the dynamic import, it must be wrapped in `<Suspense>`. In Nuxt, all components are wrapped in Suspense automatically.
+
+### Dependent Forms
+
+Nested sub-forms that share their parent's validation lifecycle use the `dependent` prop. A dependent form passes the parent's validatable object as its model and cannot be validated independently:
+
+```vue
+<IntrospectionForm
+  as="div"
+  :form="addressForm"
+  :model="parentValidatable"
+  dependent
+/>
+```
+
+This is used internally by `<IntrospectionField>` when rendering nested forms (e.g. an address sub-form inside a registration form). You typically don't need to use `dependent` directly — it's set automatically for nested `form` configurations.
+
+### Dirty Tracking and Loaded State
+
+The component exposes additional reactive state via `v-model`:
+
+```vue
+<IntrospectionForm
+  :form="form"
+  :model="model"
+  v-model:dirty="isDirty"
+  v-model:loaded="isLoaded"
+  v-model:el="formElement"
+  v-model:parameters="dryvParameters"
+/>
+```
+
+```ts
+const isDirty = ref(false)         // true when any field has been modified
+const isLoaded = ref(false)        // true after storage data has been loaded
+const formElement = ref<HTMLElement>()  // the root DOM element
+const dryvParameters = ref<object>()   // Dryv validation parameters
+```
 
 ### Dynamic / Conditional Fields
 
@@ -451,16 +572,22 @@ byFieldType: {
 
 ### Key Types
 
-| Type | Description |
-|------|-------------|
-| `IntrospectionType<T>` | Generated metadata for a GraphQL input type |
-| `IntrospectionField` | Metadata for a single field (name, type, nullability, enum values) |
-| `FormConfig<T>` | User-provided form configuration (field → boolean or FieldConfiguration) |
-| `FormRuntime<T>` | Processed runtime form configuration passed to components |
-| `FieldConfiguration` | Full per-field config (component, props, visible, disabled, span, label, info, emits, form) |
-| `FieldRuntime` | Processed field config with all values as functions |
-| `IntrospectionFormsDefaults` | Global defaults shape (byFieldType, byOriginalType, byFieldName, enumFilters) |
-| `Translate` | `(key: string, params?) => string` |
+| Type | Source | Description |
+|------|--------|-------------|
+| `IntrospectionType<T>` | `introspection-forms` | Generated metadata for a GraphQL input type |
+| `IntrospectionField` | `introspection-forms` | Metadata for a single field (name, type, nullability, enum values) |
+| `FormConfig<T>` | `introspection-forms` | User-provided form configuration (field → boolean or FieldConfiguration) |
+| `FormRuntime<T>` | `introspection-forms` | Processed runtime form configuration passed to components |
+| `FieldConfiguration` | `introspection-forms` | Full per-field config (component, props, visible, disabled, span, label, info, emits, form) |
+| `FieldRuntime` | `introspection-forms` | Processed field config with all values as functions |
+| `ValidatableField` | `introspection-forms` | Minimal validatable field interface (value, text, required) |
+| `IntrospectionFormsDefaults` | `introspection-forms` | Global defaults shape (byFieldType, byOriginalType, byFieldName, enumFilters) |
+| `Translate` | `introspection-forms` | `(key: string, params?) => string` |
+| `DryvValidatableObject<T>` | `dryvjs` | Typed validatable proxy from Dryv. Each property is a `DryvValidatableField`. |
+| `DryvValidatableField<T>` | `dryvjs` | A single validatable field with `value`, `text`, `type`, `validate()`, etc. |
+| `DryvValidationResult` | `dryvjs` | Result of `validate()` with `success`, `hasErrors`, `hasWarnings`, `hasNewWarnings`. |
+| `DryvValidationRuleSet<T>` | `dryvjs` | A named set of validation rules generated by Dryv. |
+| `UseDryvResult<T>` | `dryvue` | Return type of `useDryv()` with `validatable`, `model`, `validate`, `dirty`, `reset`, `revert`, etc. |
 
 ### `<IntrospectionForm>` Props
 
@@ -470,10 +597,21 @@ byFieldType: {
 | `form` | `FormRuntime<T>` | — | Form runtime from `useIntrospectionForm` |
 | `as` | `string` | `'form'` | HTML element or component to render as the root |
 | `columns` | `number` | `2` | Number of grid columns |
+| `dependent` | `boolean` | `false` | Mark as a dependent sub-form that shares the parent's validation lifecycle |
 | `storage` | `'session' \| 'local' \| 'none' \| boolean` | `'session'` | Persistence strategy |
 | `interceptStorage` | `(model: T) => T \| undefined` | — | Transform data loaded from storage |
-| `validatable` | `Record<string, unknown>` | — | Dryv validatable proxy object |
-| `v-model:validate` | `() => Promise<boolean>` | — | Bind to receive the validation trigger function. Call it to run Dryv validation on the form. |
+| `validatable` | `DryvValidatableObject<T>` | — | External Dryv validatable proxy object. When provided, the component uses it directly instead of creating its own Dryv session. |
+
+### `<IntrospectionForm>` v-model Bindings
+
+| Binding | Type | Description |
+|---------|------|-------------|
+| `v-model:validate` | `(checkOnly?: boolean) => Promise<boolean>` | Receive the validation trigger function. Call it to run Dryv validation. Returns `true` on success. |
+| `v-model:reset` | `() => void` | Receive the reset function. Reverts field changes and clears validation state. |
+| `v-model:dirty` | `boolean` | `true` when any field has been modified since the last reset. |
+| `v-model:loaded` | `boolean` | `true` after the component has finished loading data from storage. |
+| `v-model:parameters` | `object` | Dryv validation parameters (e.g. async validation config). |
+| `v-model:el` | `HTMLElement` | The root DOM element of the form. |
 
 ## Architecture
 

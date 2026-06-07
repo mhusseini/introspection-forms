@@ -25,7 +25,7 @@
 <script setup lang="ts" generic="TModel extends Record<string, unknown>">
 import { ref, computed, onMounted, watch, watchEffect, unref, inject, type Ref } from 'vue'
 import type { FormRuntime, FieldRuntime, IntrospectionField as IntrospectionFieldType, Translate } from '../types'
-import type { DryvValidatableObject, DryvValidationResult, DryvValidationRuleSet } from 'dryvjs'
+import type { DryvValidatable, DryvValidatableObject, DryvValidationResult, DryvValidationRuleSet } from 'dryvjs'
 import type { UseDryvResult } from 'dryvue'
 import { readStorage, writeStorage } from '../utils/storage'
 import IntrospectionField from './IntrospectionField.vue'
@@ -46,7 +46,7 @@ const props = withDefaults(
     dependent?: boolean
     storage?: 'session' | 'local' | 'none' | boolean
     interceptStorage?: (model: TModel) => TModel | undefined
-    validatable?: Record<string, unknown>
+    validatable?: DryvValidatableObject<TModel>
   }>(),
   {
     as: 'form',
@@ -56,6 +56,7 @@ const props = withDefaults(
 )
 
 const validateModel = defineModel<(checkOnly?: boolean) => Promise<boolean>>('validate')
+const resetModel = defineModel<() => void>('reset')
 const dirtyModel = defineModel<boolean>('dirty', { default: false })
 const loaded = defineModel<boolean>('loaded', { default: false })
 const parametersOut = defineModel<object>('parameters')
@@ -202,8 +203,14 @@ validateModel.value = async (checkOnly?: boolean) => {
   return validationSuccessful
 }
 
-function getFieldValidatable(fieldName: string): unknown {
-  return resolvedValidatable?.[fieldName]
+// Expose reset command
+resetModel.value = () => {
+  if (revert) revert()
+  if (reset) reset()
+}
+
+function getFieldValidatable(fieldName: string): DryvValidatable<unknown> | undefined {
+  return (resolvedValidatable as Record<string, DryvValidatable<unknown>>)?.[fieldName]
 }
 
 function toValues(
