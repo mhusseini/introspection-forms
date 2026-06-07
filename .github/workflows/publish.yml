@@ -44,8 +44,6 @@ jobs:
             yarn pack --out package.tgz
             npm publish package.tgz --access public --provenance
           fi
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish nuxt-introspection-forms
         working-directory: packages/nuxt-introspection-forms
@@ -56,5 +54,3 @@ jobs:
             yarn pack --out package.tgz
             npm publish package.tgz --access public --provenance
           fi
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

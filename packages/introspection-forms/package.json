@@ -3,6 +3,11 @@
   "version": "0.1.0",
   "description": "Schema-driven form generation for Vue 3 from GraphQL introspection metadata",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mhusseini/introspection-forms.git",
+    "directory": "packages/introspection-forms"
+  },
   "type": "module",
   "exports": {
     ".": {

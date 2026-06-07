@@ -3,6 +3,11 @@
   "version": "0.1.0",
   "description": "Nuxt module for introspection-forms — schema-driven form generation from GraphQL",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mhusseini/introspection-forms.git",
+    "directory": "packages/nuxt-introspection-forms"
+  },
   "type": "module",
   "exports": {
     ".": {
