@@ -1,0 +1,60 @@
+name: Build & Publish to NPM
+
+on:
+  push:
+    branches: [develop, main]
+  workflow_dispatch:
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      - name: Enable Corepack & activate Yarn
+        run: |
+          corepack enable
+          corepack prepare yarn@4.16.0 --activate
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Build all packages
+        run: yarn build
+
+      - name: Publish introspection-forms
+        working-directory: packages/introspection-forms
+        run: |
+          if npm view introspection-forms@$(node -p "require('./package.json').version") version 2>/dev/null; then
+            echo "introspection-forms@$(node -p "require('./package.json').version") already published, skipping."
+          else
+            yarn pack --out package.tgz
+            npm publish package.tgz --access public --provenance
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish nuxt-introspection-forms
+        working-directory: packages/nuxt-introspection-forms
+        run: |
+          if npm view nuxt-introspection-forms@$(node -p "require('./package.json').version") version 2>/dev/null; then
+            echo "nuxt-introspection-forms@$(node -p "require('./package.json').version") already published, skipping."
+          else
+            yarn pack --out package.tgz
+            npm publish package.tgz --access public --provenance
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
