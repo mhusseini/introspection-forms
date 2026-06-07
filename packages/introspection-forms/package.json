@@ -45,14 +45,20 @@
     "yaml": "^2.0.0"
   },
   "peerDependenciesMeta": {
-    "dryvjs": { "optional": true },
-    "dryvue": { "optional": true },
-    "yaml": { "optional": true }
+    "dryvjs": {
+      "optional": true
+    },
+    "dryvue": {
+      "optional": true
+    },
+    "yaml": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@types/node": "^25.9.2",
-    "dryvjs": "^1.0.0",
-    "dryvue": "^2.0.0",
+    "dryvjs": "^1.0.1-pre.1",
+    "dryvue": "^2.0.1-pre.1",
     "graphql": "^16.9.0",
     "prettier": "^3.8.3",
     "tsup": "^8.4.0",
