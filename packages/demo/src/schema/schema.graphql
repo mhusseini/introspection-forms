@@ -1,0 +1,50 @@
+enum Salutation {
+  Mr
+  Mrs
+  Other
+  None
+}
+
+enum ContactMethod {
+  Email
+  Phone
+  Mail
+}
+
+enum EmploymentStatus {
+  Employed
+  SelfEmployed
+  Student
+  Retired
+  Unemployed
+}
+
+input AddressInput {
+  street: String!
+  houseNumber: String!
+  zipCode: String!
+  city: String!
+  country: String
+}
+
+input RegistrationFormInput {
+  salutation: Salutation!
+  firstName: String!
+  lastName: String!
+  dateOfBirth: DateTime
+  email: String!
+  phone: String
+  preferredContact: ContactMethod!
+  address: AddressInput!
+  billingAddress: AddressInput
+  useSameAddress: Boolean!
+  employmentStatus: EmploymentStatus!
+  companyName: String
+  annualIncome: Float
+  acceptTerms: Boolean!
+  acceptNewsletter: Boolean!
+  referralCode: String
+  notes: String
+}
+
+scalar DateTime
