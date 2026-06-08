@@ -3714,6 +3714,66 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@softwareproduction/introspection-forms-demo@workspace:packages/demo":
+  version: 0.0.0-use.local
+  resolution: "@softwareproduction/introspection-forms-demo@workspace:packages/demo"
+  dependencies:
+    "@graphql-codegen/cli": "npm:^5.0.3"
+    "@graphql-codegen/typescript": "npm:^4.1.0"
+    "@softwareproduction/introspection-forms": "workspace:*"
+    "@vitejs/plugin-vue": "npm:^5.2.0"
+    dryvue: "npm:^2.0.1-pre.1"
+    graphql: "npm:^16.9.0"
+    typescript: "npm:^5.7.0"
+    vite: "npm:^6.3.0"
+    vue: "npm:^3.5.0"
+  languageName: unknown
+  linkType: soft
+
+"@softwareproduction/introspection-forms@workspace:*, @softwareproduction/introspection-forms@workspace:packages/introspection-forms":
+  version: 0.0.0-use.local
+  resolution: "@softwareproduction/introspection-forms@workspace:packages/introspection-forms"
+  dependencies:
+    "@apidevtools/swagger-parser": "npm:^12.1.0"
+    "@graphql-codegen/plugin-helpers": "npm:^5.1.0"
+    "@types/node": "npm:^25.9.2"
+    dryvjs: "npm:^1.0.1-pre.1"
+    dryvue: "npm:^2.0.1-pre.1"
+    graphql: "npm:^16.9.0"
+    openapi-types: "npm:^12.1.3"
+    prettier: "npm:^3.8.3"
+    tsup: "npm:^8.4.0"
+    typescript: "npm:^5.7.0"
+    vue: "npm:^3.5.0"
+  peerDependencies:
+    dryvjs: ^1.0.0
+    dryvue: ^2.0.0
+    graphql: ^16.0.0
+    vue: ^3.4.0
+  peerDependenciesMeta:
+    dryvjs:
+      optional: true
+    dryvue:
+      optional: true
+  languageName: unknown
+  linkType: soft
+
+"@softwareproduction/nuxt-introspection-forms@workspace:packages/nuxt-introspection-forms":
+  version: 0.0.0-use.local
+  resolution: "@softwareproduction/nuxt-introspection-forms@workspace:packages/nuxt-introspection-forms"
+  dependencies:
+    "@nuxt/kit": "npm:^3.16.0"
+    "@nuxt/module-builder": "npm:^0.8.0"
+    "@softwareproduction/introspection-forms": "workspace:*"
+    nuxt: "npm:^3.16.0"
+    typescript: "npm:^5.7.0"
+    vue: "npm:^3.5.0"
+  peerDependencies:
+    nuxt: ^3.16.0 || ^4.0.0
+    vue: ^3.4.0
+  languageName: unknown
+  linkType: soft
+
 "@speed-highlight/core@npm:^1.2.14":
   version: 1.2.15
   resolution: "@speed-highlight/core@npm:1.2.15"
@@ -6903,55 +6963,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"introspection-forms-demo@workspace:packages/demo":
-  version: 0.0.0-use.local
-  resolution: "introspection-forms-demo@workspace:packages/demo"
-  dependencies:
-    "@graphql-codegen/cli": "npm:^5.0.3"
-    "@graphql-codegen/typescript": "npm:^4.1.0"
-    "@vitejs/plugin-vue": "npm:^5.2.0"
-    dryvue: "npm:^2.0.1-pre.1"
-    graphql: "npm:^16.9.0"
-    introspection-forms: "workspace:*"
-    typescript: "npm:^5.7.0"
-    vite: "npm:^6.3.0"
-    vue: "npm:^3.5.0"
-  languageName: unknown
-  linkType: soft
-
 "introspection-forms-monorepo@workspace:.":
   version: 0.0.0-use.local
   resolution: "introspection-forms-monorepo@workspace:."
   dependencies:
     typescript: "npm:^5.7.0"
-  languageName: unknown
-  linkType: soft
-
-"introspection-forms@workspace:*, introspection-forms@workspace:packages/introspection-forms":
-  version: 0.0.0-use.local
-  resolution: "introspection-forms@workspace:packages/introspection-forms"
-  dependencies:
-    "@apidevtools/swagger-parser": "npm:^12.1.0"
-    "@graphql-codegen/plugin-helpers": "npm:^5.1.0"
-    "@types/node": "npm:^25.9.2"
-    dryvjs: "npm:^1.0.1-pre.1"
-    dryvue: "npm:^2.0.1-pre.1"
-    graphql: "npm:^16.9.0"
-    openapi-types: "npm:^12.1.3"
-    prettier: "npm:^3.8.3"
-    tsup: "npm:^8.4.0"
-    typescript: "npm:^5.7.0"
-    vue: "npm:^3.5.0"
-  peerDependencies:
-    dryvjs: ^1.0.0
-    dryvue: ^2.0.0
-    graphql: ^16.0.0
-    vue: ^3.4.0
-  peerDependenciesMeta:
-    dryvjs:
-      optional: true
-    dryvue:
-      optional: true
   languageName: unknown
   linkType: soft
 
@@ -8135,22 +8151,6 @@ __metadata:
   checksum: 10c0/5fee7ff309727763689cfad844d979aedd2204a817fbaaf0e1603794a7c20db28548d7b024692f953557df6ce4a0ee4ae46cd8ebd9b36cfb300b9226b567c479
   languageName: node
   linkType: hard
-
-"nuxt-introspection-forms@workspace:packages/nuxt-introspection-forms":
-  version: 0.0.0-use.local
-  resolution: "nuxt-introspection-forms@workspace:packages/nuxt-introspection-forms"
-  dependencies:
-    "@nuxt/kit": "npm:^3.16.0"
-    "@nuxt/module-builder": "npm:^0.8.0"
-    introspection-forms: "workspace:*"
-    nuxt: "npm:^3.16.0"
-    typescript: "npm:^5.7.0"
-    vue: "npm:^3.5.0"
-  peerDependencies:
-    nuxt: ^3.16.0 || ^4.0.0
-    vue: ^3.4.0
-  languageName: unknown
-  linkType: soft
 
 "nuxt@npm:^3.16.0":
   version: 3.21.7

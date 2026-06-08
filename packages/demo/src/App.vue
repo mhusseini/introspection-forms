@@ -47,8 +47,8 @@
 <script setup lang="ts">
 import './App.css'
 import { ref, reactive, watch } from 'vue'
-import { useIntrospectionForm } from 'introspection-forms'
-import IntrospectionForm from 'introspection-forms/components/IntrospectionForm.vue'
+import { useIntrospectionForm } from '@softwareproduction/introspection-forms'
+import IntrospectionForm from '@softwareproduction/introspection-forms/components/IntrospectionForm.vue'
 import { TypeOfRegistrationFormInput, TypeOfAddressInput } from './generated/introspection'
 import { RegistrationFormValidationSet } from './validation/RegistrationFormRules'
 import { Salutation, ContactMethod, EmploymentStatus } from './generated/graphql-types'

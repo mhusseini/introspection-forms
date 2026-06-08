@@ -1,4 +1,4 @@
-import type { IntrospectionType } from 'introspection-forms'
+import type { IntrospectionType } from '@softwareproduction/introspection-forms'
 import { type RegistrationFormInput, Salutation, ContactMethod, EmploymentStatus } from '../graphql-types'
 import { TypeOfAddressInput } from './TypeOfAddressInput'
 

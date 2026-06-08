@@ -1,6 +1,6 @@
 import { defineNuxtPlugin } from '#app'
-import { INTROSPECTION_FORMS_KEY } from 'introspection-forms'
-import type { IntrospectionFormsDefaults } from 'introspection-forms'
+import { INTROSPECTION_FORMS_KEY } from '@softwareproduction/introspection-forms'
+import type { IntrospectionFormsDefaults } from '@softwareproduction/introspection-forms'
 
 /**
  * Nuxt plugin that provides the global introspection-forms defaults configuration.
@@ -25,7 +25,7 @@ import type { IntrospectionFormsDefaults } from 'introspection-forms'
  * @example Custom plugin for dynamic configuration (app/plugins/configure-forms.ts)
  * ```ts
  * import { FormInput, FormCheckbox, FormRadio } from './components'
- * import type { IntrospectionFormsDefaults } from 'introspection-forms'
+ * import type { IntrospectionFormsDefaults } from '@softwareproduction/introspection-forms'
  *
  * export default defineNuxtPlugin(nuxtApp => {
  *   nuxtApp.provide('introspection-forms', {

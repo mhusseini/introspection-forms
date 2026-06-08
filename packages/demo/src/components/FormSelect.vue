@@ -19,7 +19,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { IntrospectionFormEditorProps } from 'introspection-forms'
+import type { IntrospectionFormEditorProps } from '@softwareproduction/introspection-forms'
 
 export interface SelectOption {
   value: unknown

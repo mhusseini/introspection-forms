@@ -1,4 +1,4 @@
-import type { IntrospectionType } from 'introspection-forms'
+import type { IntrospectionType } from '@softwareproduction/introspection-forms'
 import { type AddressInput } from '../graphql-types'
 
 export const TypeOfAddressInput: IntrospectionType<AddressInput> = {

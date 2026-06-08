@@ -15,11 +15,11 @@ const config: CodegenConfig = {
     },
     // Generate introspection metadata
     './src/generated/introspection/_placeholder.ts': {
-      plugins: ['introspection-forms/codegen'],
+      plugins: ['@softwareproduction/introspection-forms/codegen'],
       config: {
         output: './src/generated/introspection',
         typesImport: '../graphql-types',
-        introspectionTypeImport: 'introspection-forms',
+        introspectionTypeImport: '@softwareproduction/introspection-forms',
       },
     },
   },

@@ -26,7 +26,7 @@ export interface OpenApiCodegenConfig {
 
   /**
    * Import path for the IntrospectionType interface.
-   * @default 'introspection-forms'
+   * @default '@softwareproduction/introspection-forms'
    */
   introspectionTypeImport?: string
 
@@ -66,7 +66,7 @@ export interface OpenApiCodegenConfig {
  *
  * @example
  * ```ts
- * import { generateFromOpenApi } from 'introspection-forms/openapi'
+ * import { generateFromOpenApi } from '@softwareproduction/introspection-forms/openapi'
  *
  * await generateFromOpenApi({
  *   source: './openapi.yaml',
@@ -82,7 +82,7 @@ export async function generateFromOpenApi(config: OpenApiCodegenConfig): Promise
     throw new Error('[introspection-forms/openapi] `output` is required')
   }
 
-  const introspectionTypeImport = config.introspectionTypeImport ?? 'introspection-forms'
+  const introspectionTypeImport = config.introspectionTypeImport ?? '@softwareproduction/introspection-forms'
   const filePrefix = config.filePrefix ?? 'TypeOf'
   const usePrettier = config.prettier !== false
 

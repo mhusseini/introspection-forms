@@ -1,6 +1,6 @@
-# introspection-forms-demo
+# @softwareproduction/introspection-forms-demo
 
-Standalone Vue 3 demo application showcasing a complex multi-section registration form powered by `introspection-forms` with local Dryv validation rules — no backend required.
+Standalone Vue 3 demo application showcasing a complex multi-section registration form powered by `@softwareproduction/introspection-forms` with local Dryv validation rules — no backend required.
 
 ## Table of Contents
 
@@ -27,7 +27,7 @@ Standalone Vue 3 demo application showcasing a complex multi-section registratio
 
 ```bash
 # From the workspace root:
-yarn workspace introspection-forms-demo dev
+yarn workspace @softwareproduction/introspection-forms-demo dev
 
 # Or from this directory:
 yarn dev

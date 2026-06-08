@@ -1,4 +1,4 @@
-# introspection-forms
+# @softwareproduction/introspection-forms
 
 Schema-driven form generation for Vue 3 from GraphQL or OpenAPI introspection metadata. A code generator reads your GraphQL schema or OpenAPI specification and produces TypeScript metadata for every input/schema type — field types, nullability, enum values, defaults, and a factory function. At runtime, a composable turns that metadata into a fully reactive form with automatic component resolution, validation integration, and conditional logic.
 
@@ -38,7 +38,7 @@ Schema-driven form generation for Vue 3 from GraphQL or OpenAPI introspection me
 
 ```bash
 # Core package
-yarn add introspection-forms
+yarn add @softwareproduction/introspection-forms
 
 # Code generation from GraphQL (dev dependency)
 yarn add -D @graphql-codegen/cli graphql
@@ -99,14 +99,14 @@ const config: CodegenConfig = {
   generates: {
     // The key here is a placeholder — the plugin writes to `config.output` instead.
     './src/generated/introspection/_placeholder.ts': {
-      plugins: ['introspection-forms/codegen'],
+      plugins: ['@softwareproduction/introspection-forms/codegen'],
       config: {
         // Required: output directory for generated files
         output: './src/generated/introspection',
 
         // Optional: where the IntrospectionType interface is imported from
-        // Default: 'introspection-forms'
-        introspectionTypeImport: 'introspection-forms',
+        // Default: '@softwareproduction/introspection-forms'
+        introspectionTypeImport: '@softwareproduction/introspection-forms',
 
         // Optional: import path for the GraphQL TypeScript types
         // Default: '../types'
@@ -146,7 +146,7 @@ src/generated/introspection/
 Each generated file looks like:
 
 ```ts
-import type { IntrospectionType } from 'introspection-forms'
+import type { IntrospectionType } from '@softwareproduction/introspection-forms'
 import { type ContactFormInput } from '../graphql-types'
 
 export const TypeOfContactFormInput: IntrospectionType<ContactFormInput> = {
@@ -171,7 +171,7 @@ Use `generateFromOpenApi()` to generate introspection metadata from an OpenAPI 3
 Create a script (e.g. `scripts/generate-forms.ts`):
 
 ```ts
-import { generateFromOpenApi } from 'introspection-forms/openapi'
+import { generateFromOpenApi } from '@softwareproduction/introspection-forms/openapi'
 
 await generateFromOpenApi({
   source: './openapi.yaml',
@@ -189,7 +189,7 @@ npx tsx scripts/generate-forms.ts
 #### From a remote URL
 
 ```ts
-import { generateFromOpenApi } from 'introspection-forms/openapi'
+import { generateFromOpenApi } from '@softwareproduction/introspection-forms/openapi'
 
 await generateFromOpenApi({
   source: 'https://petstore3.swagger.io/api/v3/openapi.json',
@@ -225,7 +225,7 @@ src/generated/introspection/
 Each generated file:
 
 ```ts
-import type { IntrospectionType } from 'introspection-forms'
+import type { IntrospectionType } from '@softwareproduction/introspection-forms'
 import type { CreateUserRequest } from '../api-types'
 
 export const TypeOfCreateUserRequest: IntrospectionType<CreateUserRequest> = {
@@ -247,9 +247,9 @@ Register the plugin to configure which components render which field types:
 
 ```ts
 import { createApp } from 'vue'
-import { IntrospectionFormsPlugin } from 'introspection-forms/plugin'
-import IntrospectionForm from 'introspection-forms/components/IntrospectionForm.vue'
-import IntrospectionField from 'introspection-forms/components/IntrospectionField.vue'
+import { IntrospectionFormsPlugin } from '@softwareproduction/introspection-forms/plugin'
+import IntrospectionForm from '@softwareproduction/introspection-forms/components/IntrospectionForm.vue'
+import IntrospectionField from '@softwareproduction/introspection-forms/components/IntrospectionField.vue'
 import { FormInput, FormCheckbox, FormRadio, FormSelect, FormTextarea } from './my-components'
 
 const app = createApp(App)
@@ -336,7 +336,7 @@ app.use(IntrospectionFormsPlugin, {
 
 ```ts
 import { ref } from 'vue'
-import { useIntrospectionForm } from 'introspection-forms'
+import { useIntrospectionForm } from '@softwareproduction/introspection-forms'
 import { TypeOfContactFormInput } from './generated/introspection'
 
 const data = ref(TypeOfContactFormInput.create())
@@ -370,7 +370,7 @@ Create the Dryv session yourself and pass the `validatable` object as a prop:
 ```ts
 import { reactive, ref } from 'vue'
 import { useDryv } from 'dryvue'
-import { useIntrospectionForm } from 'introspection-forms'
+import { useIntrospectionForm } from '@softwareproduction/introspection-forms'
 import { TypeOfContactFormInput } from './generated/introspection'
 import { ContactFormValidationSet } from './validation/ContactFormRules'
 
@@ -435,7 +435,7 @@ The component dynamically imports [`dryvue`](https://github.com/mhusseini/dryvue
 
 ```ts
 import { reactive, ref } from 'vue'
-import { useIntrospectionForm } from 'introspection-forms'
+import { useIntrospectionForm } from '@softwareproduction/introspection-forms'
 import { TypeOfContactFormInput } from './generated/introspection'
 import { ContactFormValidationSet } from './validation/ContactFormRules'
 
@@ -565,7 +565,7 @@ The `<IntrospectionField>` component detects the nested form and recursively ren
 A field in the form config that does not correspond to any field in the model's introspection metadata is treated as a custom Vue component. It will be rendered at its configured position in the form layout, but without data-binding or validation:
 
 ```ts
-import { useIntrospectionForm } from 'introspection-forms'
+import { useIntrospectionForm } from '@softwareproduction/introspection-forms'
 import { TypeOfContactFormInput } from './generated/introspection'
 import FormDivider from './components/FormDivider.vue'
 import FormHint from './components/FormHint.vue'
@@ -596,7 +596,7 @@ Since `divider` and `hint` are not fields defined in `TypeOfContactFormInput`, t
 Get full IDE autocompletion for the props of the component you're configuring:
 
 ```ts
-import { withProps } from 'introspection-forms'
+import { withProps } from '@softwareproduction/introspection-forms'
 
 const form = useIntrospectionForm(TypeOfContactFormInput, {
   email: {
@@ -736,7 +736,7 @@ Additionally, any props configured via the field's `props` option or global defa
 </template>
 
 <script setup lang="ts">
-import type { IntrospectionFormEditorProps } from 'introspection-forms'
+import type { IntrospectionFormEditorProps } from '@softwareproduction/introspection-forms'
 
 defineProps<IntrospectionFormEditorProps>()
 </script>
@@ -749,7 +749,7 @@ Your components can declare additional props (e.g. `type`, `placeholder`, `optio
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `output` | `string` | — (required) | Directory for generated TypeScript files |
-| `introspectionTypeImport` | `string` | `'introspection-forms'` | Import path for the `IntrospectionType` interface |
+| `introspectionTypeImport` | `string` | `'@softwareproduction/introspection-forms'` | Import path for the `IntrospectionType` interface |
 | `typesImport` | `string` | `'../types'` | Import path for the generated GraphQL types |
 | `filePrefix` | `string` | `'TypeOf'` | Prefix for generated const and file names |
 | `prettier` | `boolean` | `true` | Format output with prettier |
@@ -760,7 +760,7 @@ Your components can declare additional props (e.g. `type`, `placeholder`, `optio
 |--------|------|---------|-------------|
 | `source` | `string` | — (required) | Path to a local OpenAPI file (JSON/YAML) or a URL |
 | `output` | `string` | — (required) | Directory for generated TypeScript files |
-| `introspectionTypeImport` | `string` | `'introspection-forms'` | Import path for the `IntrospectionType` interface |
+| `introspectionTypeImport` | `string` | `'@softwareproduction/introspection-forms'` | Import path for the `IntrospectionType` interface |
 | `typesImport` | `string` | `undefined` | Import path for generated types. If unset, inline types are used |
 | `filePrefix` | `string` | `'TypeOf'` | Prefix for generated const and file names |
 | `prettier` | `boolean` | `true` | Format output with prettier |
@@ -769,7 +769,7 @@ Your components can declare additional props (e.g. `type`, `placeholder`, `optio
 
 ## API Reference
 
-### Exports from `introspection-forms`
+### Exports from `@softwareproduction/introspection-forms`
 
 | Export | Kind | Description |
 |--------|------|-------------|
@@ -777,20 +777,20 @@ Your components can declare additional props (e.g. `type`, `placeholder`, `optio
 | `useIntrospectionFormsEnumFilter` | composable | Access registered enum filters |
 | `withProps` | utility | Type-safe prop helper for field configuration |
 
-### Exports from `introspection-forms/codegen`
+### Exports from `@softwareproduction/introspection-forms/codegen`
 
 | Export | Kind | Description |
 |--------|------|-------------|
 | `plugin` | function | The GraphQL Codegen plugin entry point |
 
-### Exports from `introspection-forms/openapi`
+### Exports from `@softwareproduction/introspection-forms/openapi`
 
 | Export | Kind | Description |
 |--------|------|-------------|
 | `generateFromOpenApi` | function | Generate introspection metadata from an OpenAPI spec |
 | `OpenApiCodegenConfig` | type | Configuration options for the OpenAPI generator |
 
-### Exports from `introspection-forms/components/*`
+### Exports from `@softwareproduction/introspection-forms/components/*`
 
 | Component | Description |
 |-----------|-------------|

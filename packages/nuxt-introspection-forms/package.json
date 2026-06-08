@@ -1,7 +1,8 @@
 {
-  "name": "nuxt-introspection-forms",
+  "name": "@softwareproduction/nuxt-introspection-forms",
   "version": "0.1.0",
   "description": "Nuxt module for introspection-forms — schema-driven form generation from GraphQL",
+  "author": "Munir Husseini (https://github.com/mhusseini)",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -27,7 +28,7 @@
   },
   "dependencies": {
     "@nuxt/kit": "^3.16.0",
-    "introspection-forms": "workspace:*"
+    "@softwareproduction/introspection-forms": "workspace:*"
   },
   "peerDependencies": {
     "nuxt": "^3.16.0 || ^4.0.0",

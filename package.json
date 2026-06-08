@@ -1,6 +1,7 @@
 {
   "name": "introspection-forms-monorepo",
   "private": true,
+  "author": "Munir Husseini (https://github.com/mhusseini)",
   "packageManager": "yarn@4.16.0",
   "workspaces": [
     "packages/*"

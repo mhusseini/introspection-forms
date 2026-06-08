@@ -31,7 +31,7 @@ export interface IntrospectionFormsCodegenConfig {
 
   /**
    * Import path for the IntrospectionType interface.
-   * @default 'introspection-forms'
+   * @default '@softwareproduction/introspection-forms'
    */
   introspectionTypeImport?: string
 
@@ -68,7 +68,7 @@ export interface IntrospectionFormsCodegenConfig {
  *   schema: './schema.graphql',
  *   generates: {
  *     './src/generated/introspection/placeholder.ts': {
- *       plugins: ['introspection-forms/codegen'],
+ *       plugins: ['@softwareproduction/introspection-forms/codegen'],
  *       config: {
  *         output: './src/generated/introspection',
  *         typesImport: '../graphql-types',
@@ -88,7 +88,7 @@ export async function plugin(
     throw new Error('[introspection-forms] Plugin configuration error: `output` is required')
   }
 
-  const introspectionTypeImport = config.introspectionTypeImport ?? 'introspection-forms'
+  const introspectionTypeImport = config.introspectionTypeImport ?? '@softwareproduction/introspection-forms'
   const typesImport = config.typesImport ?? '../types'
   const filePrefix = config.filePrefix ?? 'TypeOf'
   const usePrettier = config.prettier !== false

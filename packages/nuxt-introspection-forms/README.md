@@ -1,6 +1,6 @@
-# nuxt-introspection-forms
+# @softwareproduction/nuxt-introspection-forms
 
-Nuxt module that wraps [introspection-forms](../introspection-forms) for seamless integration with Nuxt 3 and 4 applications. It handles component registration, composable auto-imports, alias configuration, and global defaults injection — so you can use schema-driven forms with zero boilerplate.
+Nuxt module that wraps [@softwareproduction/introspection-forms](../introspection-forms) for seamless integration with Nuxt 3 and 4 applications. It handles component registration, composable auto-imports, alias configuration, and global defaults injection — so you can use schema-driven forms with zero boilerplate.
 
 ## Table of Contents
 
@@ -19,7 +19,7 @@ Nuxt module that wraps [introspection-forms](../introspection-forms) for seamles
 ## Installation
 
 ```bash
-yarn add nuxt-introspection-forms introspection-forms
+yarn add @softwareproduction/nuxt-introspection-forms @softwareproduction/introspection-forms
 yarn add -D @graphql-codegen/cli graphql
 ```
 
@@ -31,7 +31,7 @@ Add the module to your `nuxt.config.ts`:
 
 ```ts
 export default defineNuxtConfig({
-  modules: ['nuxt-introspection-forms'],
+  modules: ['@softwareproduction/nuxt-introspection-forms'],
 
   introspectionForms: {
     // Path to generated introspection types (relative to rootDir)
@@ -49,7 +49,7 @@ The module will:
 
 ## Component Mapping Plugin
 
-Create a Nuxt plugin to define which UI components render which field types. This is where you connect `introspection-forms` to your design system.
+Create a Nuxt plugin to define which UI components render which field types. This is where you connect `@softwareproduction/introspection-forms` to your design system.
 
 ```ts
 // app/plugins/configure-forms.ts
@@ -61,8 +61,8 @@ import {
   FormTextarea,
   FormDateInput,
 } from '#components'
-import type { IntrospectionFormsDefaults, IntrospectionField } from 'introspection-forms'
-import { withProps, useIntrospectionFormsEnumFilter } from 'introspection-forms'
+import type { IntrospectionFormsDefaults, IntrospectionField } from '@softwareproduction/introspection-forms'
+import { withProps, useIntrospectionFormsEnumFilter } from '@softwareproduction/introspection-forms'
 
 export default defineNuxtPlugin(nuxtApp => {
   const { filterEnumValues } = useIntrospectionFormsEnumFilter()
@@ -195,11 +195,11 @@ const config: CodegenConfig = {
   schema: './schema.graphql',
   generates: {
     './types/generated/introspection/_placeholder.ts': {
-      plugins: ['introspection-forms/codegen'],
+      plugins: ['@softwareproduction/introspection-forms/codegen'],
       config: {
         output: './types/generated/introspection',
         typesImport: '../graphql-types',
-        introspectionTypeImport: 'introspection-forms',
+        introspectionTypeImport: '@softwareproduction/introspection-forms',
       },
     },
   },
@@ -241,7 +241,7 @@ The module registers two aliases for convenient imports:
 | Alias | Resolves To | Usage |
 |-------|-------------|-------|
 | `#introspection-types` | `<rootDir>/<generatedPath>` | `import { TypeOfXxx } from '#introspection-types'` |
-| `#introspection-forms` | `introspection-forms` package | `import { withProps } from '#introspection-forms'` |
+| `#introspection-forms` | `@softwareproduction/introspection-forms` package | `import { withProps } from '#introspection-forms'` |
 
 ## Auto-Imports
 
@@ -249,8 +249,8 @@ These are available globally without manual imports:
 
 | Import | Source | Description |
 |--------|--------|-------------|
-| `useIntrospectionForm` | `introspection-forms` | Create a form runtime |
-| `useIntrospectionFormsEnumFilter` | `introspection-forms` | Access enum filters |
+| `useIntrospectionForm` | `@softwareproduction/introspection-forms` | Create a form runtime |
+| `useIntrospectionFormsEnumFilter` | `@softwareproduction/introspection-forms` | Access enum filters |
 
 Components registered globally:
 

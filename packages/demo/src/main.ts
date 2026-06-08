@@ -1,6 +1,6 @@
 import { createApp } from 'vue'
 import { Dryv, type DryvOptions } from 'dryvue'
-import { IntrospectionFormsPlugin } from 'introspection-forms/plugin'
+import { IntrospectionFormsPlugin } from '@softwareproduction/introspection-forms/plugin'
 import App from './App.vue'
 import FormInput from './components/FormInput.vue'
 import FormCheckbox from './components/FormCheckbox.vue'

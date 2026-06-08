@@ -9,9 +9,9 @@ import { INTROSPECTION_FORMS_KEY } from './keys'
  * @example
  * ```ts
  * import { createApp } from 'vue'
- * import { IntrospectionFormsPlugin } from 'introspection-forms/plugin'
- * import IntrospectionForm from 'introspection-forms/components/IntrospectionForm.vue'
- * import IntrospectionField from 'introspection-forms/components/IntrospectionField.vue'
+ * import { IntrospectionFormsPlugin } from '@softwareproduction/introspection-forms/plugin'
+ * import IntrospectionForm from '@softwareproduction/introspection-forms/components/IntrospectionForm.vue'
+ * import IntrospectionField from '@softwareproduction/introspection-forms/components/IntrospectionField.vue'
  * import { FormInput, FormCheckbox } from './my-components'
  *
  * const app = createApp(App)

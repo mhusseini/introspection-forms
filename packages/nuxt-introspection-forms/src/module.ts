@@ -26,7 +26,7 @@ export interface ModuleOptions {
 
 export default defineNuxtModule<ModuleOptions>({
   meta: {
-    name: 'nuxt-introspection-forms',
+    name: '@softwareproduction/nuxt-introspection-forms',
     configKey: 'introspectionForms',
     compatibility: {
       nuxt: '^3.16.0 || ^4.0.0',
@@ -41,13 +41,13 @@ export default defineNuxtModule<ModuleOptions>({
     // Register components
     addComponent({
       name: 'IntrospectionForm',
-      filePath: 'introspection-forms',
+      filePath: '@softwareproduction/introspection-forms',
       export: 'IntrospectionForm',
     })
 
     addComponent({
       name: 'IntrospectionField',
-      filePath: 'introspection-forms',
+      filePath: '@softwareproduction/introspection-forms',
       export: 'IntrospectionField',
     })
 
@@ -55,7 +55,7 @@ export default defineNuxtModule<ModuleOptions>({
     nuxt.options.alias['#introspection-types'] = join(nuxt.options.rootDir, options.generatedPath!)
 
     // Add alias for the introspection-forms package types
-    nuxt.options.alias['#introspection-forms'] = 'introspection-forms'
+    nuxt.options.alias['#introspection-forms'] = '@softwareproduction/introspection-forms'
 
     // Auto-import composables
     addImportsDir(resolver.resolve('./runtime/composables'))

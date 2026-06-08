@@ -15,7 +15,7 @@
 </template>
 
 <script setup lang="ts">
-import type { IntrospectionFormEditorProps } from 'introspection-forms'
+import type { IntrospectionFormEditorProps } from '@softwareproduction/introspection-forms'
 
 withDefaults(
   defineProps<IntrospectionFormEditorProps & {

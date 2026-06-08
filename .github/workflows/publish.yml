@@ -35,21 +35,21 @@ jobs:
       - name: Build all packages
         run: yarn build
 
-      - name: Publish introspection-forms
+      - name: Publish @softwareproduction/introspection-forms
         working-directory: packages/introspection-forms
         run: |
-          if npm view introspection-forms@$(node -p "require('./package.json').version") version 2>/dev/null; then
-            echo "introspection-forms@$(node -p "require('./package.json').version") already published, skipping."
+          if npm view @softwareproduction/introspection-forms@$(node -p "require('./package.json').version") version 2>/dev/null; then
+            echo "@softwareproduction/introspection-forms@$(node -p "require('./package.json').version") already published, skipping."
           else
             yarn pack --out package.tgz
             npm publish package.tgz --access public --provenance
           fi
 
-      - name: Publish nuxt-introspection-forms
+      - name: Publish @softwareproduction/nuxt-introspection-forms
         working-directory: packages/nuxt-introspection-forms
         run: |
-          if npm view nuxt-introspection-forms@$(node -p "require('./package.json').version") version 2>/dev/null; then
-            echo "nuxt-introspection-forms@$(node -p "require('./package.json').version") already published, skipping."
+          if npm view @softwareproduction/nuxt-introspection-forms@$(node -p "require('./package.json').version") version 2>/dev/null; then
+            echo "@softwareproduction/nuxt-introspection-forms@$(node -p "require('./package.json').version") already published, skipping."
           else
             yarn pack --out package.tgz
             npm publish package.tgz --access public --provenance

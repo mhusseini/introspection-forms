@@ -11,6 +11,6 @@ declare module '@nuxt/schema' {
 
 declare module '#app' {
   interface NuxtApp {
-    $introspectionForms?: import('introspection-forms').IntrospectionFormsDefaults
+    $introspectionForms?: import('@softwareproduction/introspection-forms').IntrospectionFormsDefaults
   }
 }
