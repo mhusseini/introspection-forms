@@ -1,6 +1,6 @@
 import type { App, Component, Plugin } from 'vue'
 import type { IntrospectionFormsPluginOptions, Translate } from '../types'
-import { INTROSPECTION_FORMS_KEY } from './keys'
+import { INTROSPECTION_FORMS_KEY, INTROSPECTION_FORMS_USE_DRYV_KEY } from './keys'
 
 /**
  * Vue plugin that provides global configuration for component resolution
@@ -36,6 +36,10 @@ export const IntrospectionFormsPlugin: Plugin<[IntrospectionFormsPluginOptions &
       app.provide(INTROSPECTION_FORMS_KEY, options.defaults)
     }
 
+    if (options?.useDryv) {
+      app.provide(INTROSPECTION_FORMS_USE_DRYV_KEY, options.useDryv)
+    }
+
     if (options?.translate) {
       app.provide('introspection-forms:translate', options.translate)
     }
@@ -58,4 +62,5 @@ export function provideTranslate(app: App, t: Translate): void {
   app.provide('introspection-forms:translate', t)
 }
 
-export { INTROSPECTION_FORMS_KEY }
+export { INTROSPECTION_FORMS_KEY, INTROSPECTION_FORMS_USE_DRYV_KEY }
+export type { UseDryvFn } from './keys'

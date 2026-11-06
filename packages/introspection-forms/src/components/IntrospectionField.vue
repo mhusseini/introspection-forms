@@ -44,9 +44,9 @@
 
 <script setup lang="ts">
 import { computed, inject, useId } from 'vue'
-import type { DryvValidatableField } from 'dryvjs'
-import type { FieldRuntime, IntrospectionField, IntrospectionType, Translate, ValidatableField } from '../types'
-import { convert } from '../utils/convert'
+import type { DryvValidatableField } from '@softwareproduction/dryvjs'
+import type { FieldRuntime, IntrospectionField, IntrospectionType, Translate, ValidatableField } from '@softwareproduction/introspection-forms'
+import { convert } from '@softwareproduction/introspection-forms'
 import IntrospectionForm from './IntrospectionForm.vue'
 
 const props = withDefaults(

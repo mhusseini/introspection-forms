@@ -34,4 +34,5 @@ export { findFieldConfiguration } from './utils/findFieldConfiguration'
 export { readStorage, writeStorage, clearStorage } from './utils/storage'
 
 // Plugin
-export { IntrospectionFormsPlugin, provideTranslate, INTROSPECTION_FORMS_KEY } from './plugin/index'
+export { IntrospectionFormsPlugin, provideTranslate, INTROSPECTION_FORMS_KEY, INTROSPECTION_FORMS_USE_DRYV_KEY } from './plugin/index'
+export type { UseDryvFn } from './plugin/index'

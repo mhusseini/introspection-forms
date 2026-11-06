@@ -1,4 +1,4 @@
-import { defineNuxtModule, createResolver, addComponent, addImportsDir, addPlugin } from '@nuxt/kit'
+import { defineNuxtModule, createResolver, addComponent, addImportsDir, addPlugin, tryResolveModule } from '@nuxt/kit'
 import { join } from 'path'
 
 export interface ModuleOptions {
@@ -9,19 +9,12 @@ export interface ModuleOptions {
   generatedPath?: string
 
   /**
-   * Component mapping configuration for automatic field resolution.
-   * Configure which Vue components render which field types.
+   * Provide `useDryv` from `@softwareproduction/dryvue` to IntrospectionForm
+   * for validation. 'auto' enables it when the package is resolvable;
+   * `true` requires it (build fails otherwise); `false` disables it.
+   * @default 'auto'
    */
-  defaults?: {
-    /** Map field TypeScript types (string, number, boolean, enum) to component configs. */
-    byFieldType?: Record<string, unknown>
-    /** Map original GraphQL types (DateTime, etc.) to component configs. */
-    byOriginalType?: Record<string, unknown>
-    /** Match field names by regex to component configs. */
-    byFieldName?: { regexp: RegExp; config: unknown }[]
-    /** Filter enum values by original type name. */
-    enumFilters?: Record<string, (values: string[]) => string[]>
-  }
+  dryv?: boolean | 'auto'
 }
 
 export default defineNuxtModule<ModuleOptions>({
@@ -34,52 +27,44 @@ export default defineNuxtModule<ModuleOptions>({
   },
   defaults: {
     generatedPath: 'types/generated/introspection',
+    dryv: 'auto',
   },
-  setup(options, nuxt) {
+  async setup(options, nuxt) {
     const resolver = createResolver(import.meta.url)
 
-    // Register components
+    // The package ships raw SFCs: they must be transpiled for SSR.
+    nuxt.options.build.transpile.push('@softwareproduction/introspection-forms')
+
+    // Register components (default-exported SFCs in the package).
     addComponent({
       name: 'IntrospectionForm',
-      filePath: '@softwareproduction/introspection-forms',
-      export: 'IntrospectionForm',
+      filePath: '@softwareproduction/introspection-forms/components/IntrospectionForm.vue',
     })
-
     addComponent({
       name: 'IntrospectionField',
-      filePath: '@softwareproduction/introspection-forms',
-      export: 'IntrospectionField',
+      filePath: '@softwareproduction/introspection-forms/components/IntrospectionField.vue',
     })
 
     // Add alias for generated types
     nuxt.options.alias['#introspection-types'] = join(nuxt.options.rootDir, options.generatedPath!)
 
-    // Add alias for the introspection-forms package types
-    nuxt.options.alias['#introspection-forms'] = '@softwareproduction/introspection-forms'
-
     // Auto-import composables
     addImportsDir(resolver.resolve('./runtime/composables'))
 
-    // Add plugin for global defaults configuration
-    addPlugin({
-      src: resolver.resolve('./runtime/plugins/introspection-forms.client'),
-      mode: 'all',
-    })
-
-    // Store options in runtime config for the plugin to access
-    nuxt.options.runtimeConfig.public = nuxt.options.runtimeConfig.public || {}
-    ;(nuxt.options.runtimeConfig as Record<string, unknown>).__introspectionFormsDefaults = options.defaults
-      ? JSON.parse(JSON.stringify(options.defaults, (_key, value) => {
-          if (value instanceof RegExp) return `__REGEXP__${value.source}__FLAGS__${value.flags}`
-          if (typeof value === 'function') return `__FUNCTION__${value.toString()}`
-          return value
-        }))
-      : undefined
-
-    // Provide module options via app config for the plugin
-    nuxt.options.appConfig = nuxt.options.appConfig || {}
-    ;(nuxt.options.appConfig as Record<string, unknown>).introspectionForms = {
-      hasDefaults: !!options.defaults,
+    // Validation wiring: provide the app's useDryv via injection.
+    const dryvRequested = options.dryv === true || options.dryv === 'auto'
+    const dryvPath = await tryResolveModule('@softwareproduction/dryvue', nuxt.options.modulesDir)
+    if (options.dryv === true && !dryvPath) {
+      throw new Error(
+        'introspectionForms.dryv is enabled but @softwareproduction/dryvue is not installed. ' +
+          'Run `yarn add @softwareproduction/dryvue` (peer, >=2.1.0).',
+      )
+    }
+    if (dryvRequested && dryvPath) {
+      addPlugin({
+        src: resolver.resolve('./runtime/plugins/dryv'),
+        mode: 'all',
+      })
     }
   },
 })

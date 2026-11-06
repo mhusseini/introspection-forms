@@ -4,7 +4,8 @@
   "author": "Munir Husseini (https://github.com/mhusseini)",
   "packageManager": "yarn@4.16.0",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "packages/nuxt-introspection-forms/playground"
   ],
   "scripts": {
     "build": "yarn workspaces foreach -A run build",

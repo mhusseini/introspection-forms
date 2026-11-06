@@ -1,5 +1,5 @@
 import { createApp } from 'vue'
-import { Dryv, type DryvOptions } from 'dryvue'
+import { Dryv, useDryv, type DryvOptions } from '@softwareproduction/dryvue'
 import { IntrospectionFormsPlugin } from '@softwareproduction/introspection-forms/plugin'
 import App from './App.vue'
 import FormInput from './components/FormInput.vue'
@@ -18,6 +18,7 @@ app.use<DryvOptions>(Dryv, {
 
 // Install IntrospectionForms with component mapping
 app.use(IntrospectionFormsPlugin, {
+  useDryv,
   // Simple translation: convert camelCase field names to Title Case labels
   translate: (key: string) => {
     const fieldName = key.split('.').pop() ?? key

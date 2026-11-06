@@ -342,3 +342,17 @@ const form = useIntrospectionForm({
 ## License
 
 MIT
+
+## 0.2.0 (breaking)
+
+- Components resolve from `@softwareproduction/introspection-forms/components/*.vue` (SFCs now shipped in dist + transpiled for SSR).
+- The module `defaults` option was removed. Register defaults/translate in your own plugin:
+  ```ts
+  // plugins/forms.ts
+  import { IntrospectionFormsPlugin } from '@softwareproduction/introspection-forms/plugin'
+  export default defineNuxtPlugin((nuxtApp) => {
+    nuxtApp.vueApp.use(IntrospectionFormsPlugin, {defaults: {/* component mapping */}, translate})
+  })
+  ```
+- Validation: `@softwareproduction/dryvue` is wired via injection (`dryv: 'auto' | true | false`, default 'auto'). `dryv: true` without the package installed fails the build.
+- `IntrospectionForm` storage defaults to `'session'` — pass `storage="none"` for personal data.

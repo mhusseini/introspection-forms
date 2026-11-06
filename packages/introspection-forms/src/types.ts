@@ -195,6 +195,15 @@ export interface IntrospectionFormsDefaults {
 export interface IntrospectionFormsPluginOptions {
   /** Global defaults for component resolution. */
   defaults?: IntrospectionFormsDefaults
+  /**
+   * The app's `useDryv` composable from `@softwareproduction/dryvue`.
+   * Required for `IntrospectionForm` validation (`form.rules`); optional
+   * otherwise. Provided to components via injection — the library never
+   * imports dryvue at runtime.
+   */
+  useDryv?: import('@softwareproduction/dryvue').UseDryvResult<any> extends never
+    ? never
+    : typeof import('@softwareproduction/dryvue').useDryv
   /** A custom translation function for label resolution. */
   translate?: Translate
   /**

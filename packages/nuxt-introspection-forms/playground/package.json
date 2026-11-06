@@ -1,0 +1,16 @@
+{
+  "name": "nuxt-introspection-forms-playground",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxi dev",
+    "dev:prepare": "nuxi prepare",
+    "dev:build": "nuxi build"
+  },
+  "dependencies": {
+    "@softwareproduction/dryvjs": "1.1.7",
+    "@softwareproduction/dryvue": "2.1.5",
+    "@softwareproduction/introspection-forms": "workspace:*",
+    "nuxt": "^3.16.0"
+  }
+}

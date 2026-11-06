@@ -1,6 +1,6 @@
 {
   "name": "@softwareproduction/nuxt-introspection-forms",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Nuxt module for introspection-forms — schema-driven form generation from GraphQL",
   "author": "Munir Husseini (https://github.com/mhusseini)",
   "license": "MIT",

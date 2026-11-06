@@ -1,6 +1,6 @@
 {
   "name": "@softwareproduction/introspection-forms",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Schema-driven form generation for Vue 3 from GraphQL introspection metadata",
   "author": "Munir Husseini (https://github.com/mhusseini)",
   "license": "MIT",
@@ -27,16 +27,15 @@
       "types": "./dist/plugin/index.d.ts",
       "import": "./dist/plugin/index.js"
     },
-    "./components/*": "./src/components/*"
+    "./components/*": "./dist/components/*"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
-    "dist",
-    "src/components"
+    "dist"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && node scripts/copy-components.mjs",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit"
   },
@@ -46,23 +45,23 @@
     "openapi-types": "^12.1.3"
   },
   "peerDependencies": {
-    "dryvjs": "^1.0.0",
-    "dryvue": "^2.0.0",
+    "@softwareproduction/dryvjs": "^1.1.0",
+    "@softwareproduction/dryvue": "^2.1.0",
     "graphql": "^16.0.0",
     "vue": "^3.4.0"
   },
   "peerDependenciesMeta": {
-    "dryvjs": {
+    "@softwareproduction/dryvjs": {
       "optional": true
     },
-    "dryvue": {
+    "@softwareproduction/dryvue": {
       "optional": true
     }
   },
   "devDependencies": {
+    "@softwareproduction/dryvjs": "1.1.7",
+    "@softwareproduction/dryvue": "2.1.5",
     "@types/node": "^25.9.2",
-    "dryvjs": "^1.0.1-pre.1",
-    "dryvue": "^2.0.1-pre.1",
     "graphql": "^16.9.0",
     "prettier": "^3.8.3",
     "tsup": "^8.4.0",

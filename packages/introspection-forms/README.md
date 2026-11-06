@@ -47,13 +47,13 @@ yarn add -D @graphql-codegen/cli graphql
 yarn add -D yaml   # only needed if your OpenAPI spec is YAML
 
 # Optional: validation
-yarn add dryvjs dryvue
+yarn add @softwareproduction/dryvjs @softwareproduction/dryvue
 
 # Optional: prettier for formatted output
 yarn add -D prettier
 ```
 
-Peer dependencies: `vue >= 3.4`, `graphql >= 16`. Optional peer dependencies: `dryvjs >= 1.0`, `dryvue >= 2.0` (for validation), `yaml >= 2.0` (for YAML OpenAPI specs).
+Peer dependencies: `vue >= 3.4`, `graphql >= 16`. Optional peer dependencies: `@softwareproduction/dryvjs >= 1.1`, `@softwareproduction/dryvue >= 2.1` (for validation), `yaml >= 2.0` (for YAML OpenAPI specs).
 
 ## How It Works
 

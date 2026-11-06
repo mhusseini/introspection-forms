@@ -24,18 +24,14 @@
 
 <script setup lang="ts" generic="TModel extends Record<string, unknown>">
 import { ref, computed, onMounted, watch, watchEffect, unref, inject, type Ref } from 'vue'
-import type { FormRuntime, FieldRuntime, IntrospectionField as IntrospectionFieldType, Translate } from '../types'
-import type { DryvValidatable, DryvValidatableObject, DryvValidationResult, DryvValidationRuleSet } from 'dryvjs'
-import type { UseDryvResult } from 'dryvue'
-import { readStorage, writeStorage } from '../utils/storage'
+import type { FormRuntime, FieldRuntime, IntrospectionField as IntrospectionFieldType, Translate } from '@softwareproduction/introspection-forms'
+import type { DryvValidatable, DryvValidatableObject, DryvValidationResult, DryvValidationRuleSet } from '@softwareproduction/dryvjs'
+import type { UseDryvResult } from '@softwareproduction/dryvue'
+import { readStorage, writeStorage } from '@softwareproduction/introspection-forms'
+import { INTROSPECTION_FORMS_USE_DRYV_KEY, type UseDryvFn } from '@softwareproduction/introspection-forms/plugin'
 import IntrospectionField from './IntrospectionField.vue'
 
-let useDryvImport: typeof import('dryvue')['useDryv'] | undefined
-try {
-  useDryvImport = (await import('dryvue')).useDryv
-} catch {
-  // dryvue not available — form will work without validation
-}
+const useDryvFn = inject<UseDryvFn | undefined>(INTROSPECTION_FORMS_USE_DRYV_KEY, undefined)
 
 const props = withDefaults(
   defineProps<{
@@ -111,8 +107,16 @@ if (props.dependent) {
     innerModel: props.model,
     validate: async () => ({ success: true }),
   }
-} else if (props.form.rules && useDryvImport) {
-  const dryvResult: UseDryvResult<TModel> = useDryvImport<TModel>(
+} else if (props.form.rules) {
+  if (!useDryvFn) {
+    throw new Error(
+      'IntrospectionForm: `form.rules` is set but no `useDryv` function was provided. ' +
+        'Install @softwareproduction/dryvue and register it via ' +
+        '`IntrospectionFormsPlugin` option `useDryv` (or the Nuxt module `dryv` option) ' +
+        '— validation must never silently switch off.',
+    )
+  }
+  const dryvResult: UseDryvResult<TModel> = useDryvFn<TModel>(
     props.model,
     props.form.rules as DryvValidationRuleSet<TModel>,
   )

@@ -11,8 +11,9 @@
     "generate": "graphql-codegen --config codegen.config.ts"
   },
   "dependencies": {
+    "@softwareproduction/dryvjs": "1.1.7",
+    "@softwareproduction/dryvue": "2.1.5",
     "@softwareproduction/introspection-forms": "workspace:*",
-    "dryvue": "^2.0.1-pre.1",
     "vue": "^3.5.0"
   },
   "devDependencies": {
