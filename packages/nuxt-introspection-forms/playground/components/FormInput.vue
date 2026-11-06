@@ -1,11 +1,11 @@
-<script setup lang="ts">
-const model = defineModel<string>()
-defineProps<{label?: string; text?: string | null}>()
-</script>
 <template>
-  <label class="block">
-    <span>{{ label }}</span>
-    <input v-model="model" class="border px-2 py-1 w-full"/>
-    <em v-if="text" class="text-red-600 text-sm">{{ text }}</em>
-  </label>
+  <div class="field">
+    <label>{{ label }}</label>
+    <input v-model="validatable!.value" type="text"/>
+    <p v-if="validatable?.text" class="err">{{ validatable.text }}</p>
+  </div>
 </template>
+<script setup lang="ts">
+import type { IntrospectionFormEditorProps } from '@softwareproduction/introspection-forms'
+defineProps<IntrospectionFormEditorProps>()
+</script>

@@ -1,7 +1,7 @@
-<script setup lang="ts">
-const model = defineModel<boolean>()
-defineProps<{label?: string}>()
-</script>
 <template>
-  <label class="flex gap-2"><input type="checkbox" v-model="model"/>{{ label }}</label>
+  <label class="field"><input type="checkbox" v-model="validatable!.value"/> {{ label }}</label>
 </template>
+<script setup lang="ts">
+import type { IntrospectionFormEditorProps } from '@softwareproduction/introspection-forms'
+defineProps<IntrospectionFormEditorProps>()
+</script>

@@ -2,7 +2,7 @@
 import { reactive } from 'vue'
 import type { DryvValidationRuleSet } from '@softwareproduction/dryvjs'
 import { useIntrospectionForm } from '@softwareproduction/introspection-forms'
-import { ContactForm } from '../types/generated/introspection/ContactForm'
+import { ContactForm } from '#introspection-types/ContactForm'
 
 const rules: DryvValidationRuleSet<{name: string; newsletter: boolean; country: string}> = {
   name: 'ContactForm',
