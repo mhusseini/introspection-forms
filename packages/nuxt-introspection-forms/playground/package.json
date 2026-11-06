@@ -11,6 +11,7 @@
     "@softwareproduction/dryvjs": "1.1.7",
     "@softwareproduction/dryvue": "2.1.5",
     "@softwareproduction/introspection-forms": "workspace:*",
+    "@softwareproduction/nuxt-dryv": "0.2.0",
     "nuxt": "^3.16.0"
   }
 }

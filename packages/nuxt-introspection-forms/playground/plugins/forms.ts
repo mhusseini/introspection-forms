@@ -9,8 +9,12 @@ export default defineNuxtPlugin((nuxtApp) => {
       byFieldType: {
         string: {component: FormInput},
         boolean: {component: FormCheckbox},
-        enum: {component: FormSelect},
+        enum: (introspection) => ({component: FormSelect, props: {options: introspection.enumValues}}),
       },
+    },
+    translate: (key: string) => {
+      const field = key.split('.').pop() ?? key
+      return field.charAt(0).toUpperCase() + field.slice(1)
     },
   })
 })

@@ -297,6 +297,11 @@ async function submit() {
 
 The component internally creates a Dryv validation session when rules are provided and exposes the `validate` function via `v-model:validate`. Validation errors appear inline beneath each field automatically.
 
+Requirements:
+
+- Install `@softwareproduction/dryvue` (≥ 2.1). With the default `dryv: 'auto'` this module then provides `useDryv` to `<IntrospectionForm>`; passing rules without it throws instead of silently skipping validation.
+- The Dryv Vue plugin must also be installed so validators are reactive — add [`@softwareproduction/nuxt-dryv`](https://www.npmjs.com/package/@softwareproduction/nuxt-dryv) to `modules` (or `app.use(Dryv)` from `@softwareproduction/dryvue` in a plugin). Without it, messages only appear after the next re-render.
+
 ## Advanced Configuration
 
 ### Multiple Form Configs (Spread Pattern)

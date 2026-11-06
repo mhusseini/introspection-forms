@@ -11,3 +11,8 @@ dist
 
 #!.yarn/cache
 .pnp.*
+
+# Nuxt build output
+.nuxt
+.output
+.data

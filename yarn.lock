@@ -3777,6 +3777,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@softwareproduction/nuxt-dryv@npm:0.2.0":
+  version: 0.2.0
+  resolution: "@softwareproduction/nuxt-dryv@npm:0.2.0"
+  dependencies:
+    "@nuxt/kit": "npm:^3.16.0"
+    defu: "npm:^6.1.4"
+  peerDependencies:
+    "@softwareproduction/dryvue": ^2.0.0
+    nuxt: ^3.0.0
+  checksum: 10c0/f2ebd5bb285f67f930c3e5f4130891f59281d3077afa482803817bce075839b85bd5b08c1c846ff7edbf968f3f503e7441d3c48ee50084e03c1160b5147c2beb
+  languageName: node
+  linkType: hard
+
 "@softwareproduction/nuxt-introspection-forms@workspace:packages/nuxt-introspection-forms":
   version: 0.0.0-use.local
   resolution: "@softwareproduction/nuxt-introspection-forms@workspace:packages/nuxt-introspection-forms"
@@ -8160,6 +8173,7 @@ __metadata:
     "@softwareproduction/dryvjs": "npm:1.1.7"
     "@softwareproduction/dryvue": "npm:2.1.5"
     "@softwareproduction/introspection-forms": "workspace:*"
+    "@softwareproduction/nuxt-dryv": "npm:0.2.0"
     nuxt: "npm:^3.16.0"
   languageName: unknown
   linkType: soft

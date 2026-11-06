@@ -11,7 +11,7 @@ const rules: DryvValidationRuleSet<{name: string; newsletter: boolean; country: 
   },
 }
 const model = reactive({name: '', newsletter: false, country: 'DE'})
-const form = useIntrospectionForm(ContactForm, {rules})
+const form = useIntrospectionForm(ContactForm, rules, {name: true, newsletter: true, country: true})
 const validate = ref<(checkOnly?: boolean) => Promise<boolean>>()
 const submitted = ref(false)
 async function submit() {
